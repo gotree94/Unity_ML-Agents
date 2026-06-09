@@ -2,10 +2,6 @@
 
 ![](../img/3DBall.gif)
 
-![](../img/Visual3DBall.gif)
-
-![](../img/3DBallHard.gif)
-
 ## 1. 개요
 
 * 3DBall은 ML-Agents의 가장 대표적인 예제 환경입니다.
@@ -354,6 +350,8 @@ Step       Mean Reward    관찰
 
 ## 7. Ball3DHardAgent — 더 어려운 도전
 
+![](../img/3DBallHard.gif)
+
 ### 7.1 기본 버전과의 차이
 
 | 항목 | Ball3DAgent | Ball3DHardAgent |
@@ -386,6 +384,8 @@ Step 500000: Mean Reward 100 유지
 ---
 
 ## 8. Visual3DBall — 시각 관찰 학습
+
+![](../img/Visual3DBall.gif)
 
 ### 8.1 설정 방법
 
