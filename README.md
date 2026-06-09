@@ -840,6 +840,8 @@ behaviors:
 
 ### 3.6.2 3DBall (공 균형 맞추기)
 
+![](img/3DBall.gif)
+
 **이미 3.4절에서 상세히 다루었습니다.**
 - **세부 변형:** `3DBallHard` (볼 위치만 관측), `Visual3DBall` (카메라 화면으로만 관측)
 - **환경 무작위화:** `3DBall_randomize.yaml` (ball mass/scale 무작위화로 강건한 정책 학습)
@@ -848,6 +850,8 @@ behaviors:
 ---
 
 ### 3.6.3 GridWorld (격자 세계)
+
+![](img/GridWorld.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/GridWorld/Scenes/GridWorld.unity`
 - **목적:** 에이전트가 격자 위에서 올바른 목표(초록색 +)로 이동하고 장애물(빨간색 X)을 피하는 문제입니다.
@@ -897,6 +901,8 @@ behaviors:
 
 ### 3.6.4 PushBlock (블록 밀기)
 
+![](img/PushBlock.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlock.unity`
 - **목적:** 에이전트가 블록을 밀어 목표 지점으로 이동시키는 문제입니다.
 - **개념 학습:** Ray Perception Sensor 3D, Object 타입 구분 (벽/골/블록)
@@ -944,6 +950,8 @@ behaviors:
 
 ### 3.6.5 WallJump (벽 넘기)
 
+![](img/WallJump.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/WallJump/Scenes/WallJump.unity`
 - **목적:** 에이전트가 블록을 이용해 다양한 높이의 벽을 넘어 목표에 도달하는 문제입니다.
 - **개념 학습:** Curriculum Learning, Multiple Model Switching (벽 높이에 따라 다른 Policy 사용)
@@ -974,6 +982,8 @@ behaviors:
 ---
 
 ### 3.6.6 Hallway (복도 기억)
+
+![](img/Hallway.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/Hallway/Scenes/Hallway.unity`
 - **목적:** 에이전트가 방 안의 색상 정보(파란색/빨간색 큐브)를 기억했다가 복도 끝에서 올바른 골로 이동하는 문제입니다.
@@ -1024,6 +1034,8 @@ behaviors:
 ---
 
 ### 3.6.7 Pyramids (피라미드)
+
+![](img/Pyramids.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/Pyramids/Scenes/Pyramids.unity`
 - **목적:** 에이전트가 버튼을 눌러 피라미드를 생성한 후, 피라미드를 넘어뜨리고 꼭대기의 황금 벽돌에 도달하는 문제입니다.
@@ -1082,6 +1094,8 @@ behaviors:
 
 ### 3.6.8 Crawler (4족 보행)
 
+![](img/Crawler.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/Crawler/Scenes/Crawler.unity`
 - **목적:** 4개의 팔과 4개의 아래팔을 가진 생명체가 목표 방향으로 이동하는 문제입니다.
 - **개념 학습:** **Continuous Action**, **기하 평균 보상 (Geometric Reward)**, **JointDriveController**
@@ -1127,6 +1141,8 @@ behaviors:
 ---
 
 ### 3.6.9 Walker (이족 보행)
+
+![](img/Walker.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/Walker/Scenes/Walker.unity`
 - **목적:** 26 자유도를 가진 인간형 로봇이 목표 방향으로 넘어지지 않고 이동하는 문제입니다.
@@ -1176,6 +1192,8 @@ behaviors:
 
 ### 3.6.10 Worm (뱀형 보행)
 
+![](img/Worm.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/Worm/Scenes/Worm.unity`
 - **목적:** 머리와 3개 몸통 마디로 구성된 뱀형 생명체가 목표 방향으로 이동하는 문제입니다.
 - **개념 학습:** Crawler/Walker와 유사한 Continuous Control (더 적은 자유도)
@@ -1222,6 +1240,8 @@ behaviors:
 
 ### 3.6.11 FoodCollector (음식 수집)
 
+![](img/FoodCollector.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/FoodCollector/Scenes/FoodCollector.unity`
 - **목적:** 여러 에이전트가 경쟁하며 초록색 음식(보상)은 모으고 빨간색 음식(패널티)은 피하는 문제입니다.
 - **개념 학습:** **Multi-Agent (경쟁)**, Grid Perception Sensor, Hybrid Action (Continuous + Discrete)
@@ -1267,6 +1287,8 @@ behaviors:
 ---
 
 ### 3.6.12 Soccer (2vs2 축구)
+
+![](img/Soccer.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/Soccer/Scenes/SoccerTwos.unity`
 - **목적:** 4개 에이전트가 2대2 팀을 이루어 축구 경기를 하는 문제입니다.
@@ -1418,6 +1440,8 @@ behaviors:
 
 ### 3.6.15 DungeonEscape (던전 탈출)
 
+![](img/DungeonEscape.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/DungeonEscape/Scenes/DungeonEscape.unity`
 - **목적:** 3명의 에이전트가 던전에 갇혀 드래곤을 희생시켜 얻은 열쇠로 문을 열고 탈출하는 협력 문제입니다.
 - **개념 학습:** **Multi-Agent 협력 + 희생 (MA-POCA)**, 복잡한 순차적 협동
@@ -1516,6 +1540,8 @@ behaviors:
 
 ### 3.6.17 Sorter (정렬 게임)
 
+![](img/Sorter.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/Sorter/Scenes/Sorter.unity`
 - **목적:** 에이전트가 원형 방 안에 있는 번호 타일들을 오름차순으로 방문하는 문제입니다.
 - **개념 학습:** **Buffer Sensor (가변 길이 관측)**, **Curriculum Learning**
@@ -1559,6 +1585,8 @@ environment_parameters:
 ---
 
 ### 3.6.18 PushBlockWithInput (입력 처리 PushBlock)
+
+![](img/PushBlockWithInput.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/PushBlockWithInput/Scenes/PushBlockWithInput.unity`
 - **목적:** PushBlock과 동일하나, **커스텀 Actuator/Input 처리** 구현을 시연합니다.
