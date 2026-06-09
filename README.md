@@ -563,6 +563,13 @@ mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
 INFO:mlagents.trainers:Start training by pressing the Play button in the Unity Editor.
 ```
 
+![](003.png) 
+
+![](005.png)
+
+![](004.png)
+
+
 ```
 (base) C:\Users\Administrator\Desktop\ml-agents>cd ml-agents
 
