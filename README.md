@@ -202,6 +202,32 @@ conda create -n mlagents_env python=3.10.12 -y
 conda activate mlagents_env
 ```
 
+#### Conda 환경 목록 확인 및 불필요한 환경 제거
+
+```bash
+# 전체 가상 환경 목록 보기
+conda info --envs
+conda env list                        # 동일 결과
+
+# 현재 활성화된 환경 정보 확인
+conda info
+
+# 특정 환경 제거 (반드시 해당 환경을 deactivate 후 실행)
+conda deactivate
+conda env remove -n mlagents_env      # 환경 이름으로 제거
+conda env remove -p path\to\env       # 경로로 제거 (venv 등)
+
+# 환경 삭제 확인 (제거 후 목록에서 사라짐)
+conda info --envs
+
+# 불필요한 패키지 캐시 정리 (디스크 공간 확보)
+conda clean --all -y                  # 전체 캐시 삭제 (보통 5~10GB 확보)
+conda clean -p -y                     # 미사용 패키지만 삭제
+conda clean -t -y                     # tarball(.tar.bz2) 캐시만 삭제
+```
+
+> **팁:** `conda clean --all`로 PyTorch 등 패키지 설치 캐시를 정리하면 5~10GB의 디스크 공간을 확보할 수 있습니다. 필요한 패키지가 모두 설치된 후 실행하세요. 환경 자체는 그대로 유지되며, 캐시만 삭제됩니다.
+
 #### conda-forge 채널 우선 설정 (선택 사항)
 
 ```bash
@@ -2416,16 +2442,25 @@ conda env export -n mlagents_env --from-history > environment.yml  # 간소화
 conda create -n mlagents_backup --clone mlagents_env
 
 # 환경 목록
-conda info --envs
-conda env list
+conda info --envs                     # 목록 출력 (활성화된 환경에 * 표시)
+conda env list                        # 동일 결과
+conda info                            # 현재 활성화된 환경 상세 정보
 
 # 환경 제거
-conda deactivate
-conda env remove -n mlagents_env
+conda deactivate                      # 먼저 환경 비활성화 (필수)
+conda env remove -n mlagents_env      # 이름으로 제거
+conda env remove -p path\to\env       # 경로로 제거 (venv 등)
+conda env remove -n mlagents_env -y   # 확인 메시지 없이 제거
+
+# 여러 환경 중 선택적 제거 (목록 확인 후)
+conda info --envs                      # 남길/제거할 환경 확인
+conda env remove -n 불필요한_환경이름   # 불필요한 것만 골라 제거
 
 # Conda 자체 관리
 conda update conda -n base -c conda-forge
-conda clean --all
+conda clean --all -y                  # 패키지 캐시 전체 삭제 (5~10GB 확보)
+conda clean -p -y                     # 미사용 패키지 캐시만 삭제
+conda clean -t -y                     # tarball(.tar.bz2) 캐시만 삭제
 
 # Mamba (빠른 대안)
 conda install mamba -n base -c conda-forge
