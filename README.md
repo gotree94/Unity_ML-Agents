@@ -500,65 +500,147 @@ ml-agents/Project/Assets/ML-Agents/Examples/
 
 ## 3.4 학습 실행 테스트
 
+Python 터미널과 Unity Editor를 동시에 사용하여 학습을 실행합니다. 아래 다이어그램은 전체 실행 흐름입니다.
+
+```
+[터미널 1]                    [Unity Editor]                 [터미널 2]
+mlagents-learn 실행 ──────→ "Press Play" 메시지 대기
+                              Behavior Type = Default
+                              Play 버튼 클릭 ──→ 학습 시작
+                                                      tensorboard 실행
+                                                      http://localhost:6006 확인
+                              학습 완료 후 .onnx 저장
+                              .onnx → Model 필드 할당
+                              Behavior Type = Inference Only
+                              Play 버튼으로 추론 테스트
+```
+
 ### Step 1: Unity 씬 설정
 
-1. 예제 씬(예: 3DBall) 열기
-2. `Behavior Parameters`에서 `Behavior Type`을 **Default**로 설정
-3. 에디터에서 Play 모드 진입하지 않고 대기
+Unity 씬을 열고 훈련 모드로 설정합니다.
 
-### Step 2: 훈련 실행
+1. Unity Editor에서 예제 씬 열기
+   - **방법 A** (Project 폴더를 별도 프로젝트로 연 경우): `Assets/ML-Agents/Examples/3DBall/Scenes/3DBall`
+   - **방법 B** (Examples 폴더를 복사한 경우): 본인 프로젝트의 `Assets/ML-Agents/Examples/3DBall/Scenes/3DBall`
+2. 계층 뷰에서 아무 `3DBall` GameObject를 펼친 후 그 안의 `Agent` 객체 선택
+3. `Behavior Parameters` 컴포넌트의 `Behavior Type`을 **Default**로 설정
+   - Default: Python 트레이너가 에이전트를 제어 (훈련 모드)
+   - Inference Only: 내장 모델로 실행 (추론 모드)
+4. **Play 버튼을 아직 누르지 말고 대기**
+
+### Step 2: 훈련 실행 (터미널)
+
+**사전 확인:** 반드시 `mlagents_env` 가상환경이 활성화된 상태여야 합니다.
+터미널 프롬프트에 `(mlagents_env)`가 보이는지 확인하세요. `(base)`라면 먼저 전환합니다.
 
 ```bash
-# 3DBall 예제 학습
+# 가상환경 활성화 (base → mlagents_env)
+conda activate mlagents_env
+```
+
+**실행 위치:** 터미널에서 클론한 ml-agents 저장소 **루트 폴더**로 이동합니다.
+(`ml-agents/ml-agents` 내부가 아니라 `ml-agents/` 겉폴더입니다)
+
+```bash
+cd C:\Users\Administrator\Desktop\ml-agents
+```
+
+**Config 파일:** 저장소 루트의 `config/ppo/3DBall.yaml`을 사용합니다.
+(필요시 복사하여 수정 가능)
+
+```bash
+# 3DBall 예제 학습 (PPO 알고리즘)
 mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
 ```
 
-**YAML 설정 파일 예시 (`config/ppo/3DBall.yaml`):**
+- `run-id`: 학습 세션의 고유 이름입니다. 여러 번 학습할 때마다 다른 이름을 지정하세요.
+- `config/ppo/3DBall.yaml`: 저장소 루트의 `config/ppo/` 폴더에 있는 파일입니다.
+  (`ml-agents/ml-agents/config/` 가 아닌 `ml-agents/config/` 입니다)
+
+실행 후 터미널에 아래 메시지가 표시되면 **Unity로 전환하여 Play 버튼을 누릅니다.**
+
+```
+INFO:mlagents.trainers:Start training by pressing the Play button in the Unity Editor.
+```
+
+**실제 저장소의 `config/ppo/3DBall.yaml` 내용 (PPO):**
 
 ```yaml
 behaviors:
   3DBall:
     trainer_type: ppo
     hyperparameters:
-      batch_size: 1024
-      buffer_size: 10240
-      learning_rate: 3.0e-4
-      beta: 5.0e-3
+      batch_size: 64
+      buffer_size: 12000
+      learning_rate: 0.0003
+      beta: 0.001
       epsilon: 0.2
-      lambd: 0.95
+      lambd: 0.99
       num_epoch: 3
       learning_rate_schedule: linear
     network_settings:
-      normalize: false
+      normalize: true
       hidden_units: 128
       num_layers: 2
+      vis_encode_type: simple
     reward_signals:
       extrinsic:
         gamma: 0.99
         strength: 1.0
-    max_steps: 5.0e5
-    time_horizon: 64
-    summary_freq: 10000
+    keep_checkpoints: 5
+    max_steps: 500000
+    time_horizon: 1000
+    summary_freq: 12000
 ```
 
-### Step 3: TensorBoard로 학습 모니터링
+> **참고:** 하이퍼파라미터는 저장소의 기본값을 기준으로 합니다. 변경하려면 `config/ppo/3DBall.yaml`을 직접 수정하거나 복사본을 만들어 사용하세요.
+
+### Step 3: TensorBoard로 학습 모니터링 (별도 터미널)
+
+학습 중에는 **새 터미널**을 열어 TensorBoard로 진행 상황을 모니터링합니다.
 
 ```bash
+# 새 터미널에서 (mlagents_env) 가상환경 활성화 후
+conda activate mlagents_env
+
+# 저장소 루트로 이동
+cd C:\Users\Administrator\Desktop\ml-agents
+
+# TensorBoard 실행 (기본 포트 6006)
 tensorboard --logdir=results
 ```
 
-브라우저에서 `http://localhost:6006` 접속하여 Cumulative Reward, Policy Loss, Value Loss 등 확인
+브라우저에서 `http://localhost:6006` 접속
 
-### Step 4: 훈련된 모델 저장
+| 지표 | 의미 |
+|------|------|
+| **Environment/Cumulative Reward** | 에이전트의 평균 보상 (값이 증가해야 정상) |
+| **Policy Loss** | 정책 손실 (적정 범위에서 변동) |
+| **Value Loss** | 가치 손실 (적정 범위에서 변동) |
+| **Episode Length** | 에피소드당 평균 스텝 수 |
 
-훈련 완료 후 `.onnx` 파일이 `results/<run-id>/` 경로에 생성됩니다.
+### Step 4: 훈련된 모델 저장 위치
 
-### Step 5: Unity에서 모델 사용
+훈련이 완료되면(`max_steps: 500000` 도달 또는 `Ctrl+C`로 중단) `.onnx` 모델 파일이 생성됩니다.
 
-1. 생성된 `.onnx` 파일을 Unity 프로젝트의 `Assets` 폴더로 드래그
-2. Agent의 `Behavior Parameters` → `Model` 필드에 할당
-3. `Behavior Type`을 `Inference Only`로 변경
-4. Play 모드로 동작 확인
+```
+ml-agents/results/test_3dball/        ← run-id 이름의 폴더
+  ├── 3DBall.onnx                     ← 훈련된 최종 모델
+  ├── checkpoint.pt                    ← PyTorch 체크포인트 (재개용)
+  ├── events.out.tfevents.*            ← TensorBoard 로그
+  └── configuration.yaml              ← 사용된 설정 백업
+```
+
+- 최종 `.onnx` 파일: `results/<run-id>/<behavior_name>.onnx`
+- 예: `results/test_3dball/3DBall.onnx`
+
+### Step 5: Unity에서 훈련된 모델 사용
+
+1. 생성된 `.onnx` 파일 (예: `results/test_3dball/3DBall.onnx`)을 Unity 프로젝트의 `Assets` 폴더로 드래그 앤 드롭
+2. 계층 뷰에서 아무 `3DBall`을 펼쳐 `Agent` 객체 선택
+3. `Behavior Parameters` 컴포넌트의 `Model` 필드에 방금 추가한 `.onnx` 파일 할당
+4. `Behavior Type`을 **Inference Only**로 변경 (훈련 모드 → 추론 모드)
+5. **Play** 버튼 클릭하여 훈련된 모델로 공 균형 맞추기 동작 확인
 
 ## 3.5 일반적인 문제 해결
 
