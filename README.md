@@ -563,6 +563,243 @@ mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
 INFO:mlagents.trainers:Start training by pressing the Play button in the Unity Editor.
 ```
 
+```
+(base) C:\Users\Administrator\Desktop\ml-agents>cd ml-agents
+
+(base) C:\Users\Administrator\Desktop\ml-agents\ml-agents>dir
+ C 드라이브의 볼륨에는 이름이 없습니다.
+ 볼륨 일련 번호: 6E60-F78F
+
+ C:\Users\Administrator\Desktop\ml-agents\ml-agents 디렉터리
+
+2026-06-09  오후 02:17    <DIR>          .
+2026-06-09  오후 02:11    <DIR>          ..
+2026-06-09  오후 02:17    <DIR>          mlagents
+2026-06-09  오후 02:17    <DIR>          mlagents.egg-info
+2026-06-09  오후 02:11               605 pydoc-config.yaml
+2026-06-09  오후 02:11             1,139 README.md
+2026-06-09  오후 02:11             3,770 setup.py
+2026-06-09  오후 02:11    <DIR>          tests
+               3개 파일               5,514 바이트
+               5개 디렉터리  1,970,605,846,528 바이트 남음
+
+(base) C:\Users\Administrator\Desktop\ml-agents\ml-agents>conda activate mlagents_env
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\ml-agents>cd C:\Users\Administrator\Desktop\ml-agents
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents>dir
+ C 드라이브의 볼륨에는 이름이 없습니다.
+ 볼륨 일련 번호: 6E60-F78F
+
+ C:\Users\Administrator\Desktop\ml-agents 디렉터리
+
+2026-06-09  오후 02:11    <DIR>          .
+2026-06-09  오후 02:09    <DIR>          ..
+2026-06-09  오후 02:11             2,054 .editorconfig
+2026-06-09  오후 02:11               140 .gitattributes
+2026-06-09  오후 02:11    <DIR>          .github
+2026-06-09  오후 02:11             1,368 .gitignore
+2026-06-09  오후 02:11                 0 .gitmodules
+2026-06-09  오후 02:11             4,629 .pre-commit-config.yaml
+2026-06-09  오후 02:11               254 .pre-commit-search-and-replace.yaml
+2026-06-09  오후 02:11    <DIR>          .yamato
+2026-06-09  오후 02:11               597 catalog-info.yaml
+2026-06-09  오후 02:11               153 CODEOWNERS
+2026-06-09  오후 02:11             3,265 CODE_OF_CONDUCT.md
+2026-06-09  오후 02:11    <DIR>          colab
+2026-06-09  오후 02:11                21 colab_requirements.txt
+2026-06-09  오후 03:07    <DIR>          com.unity.ml-agents
+2026-06-09  오후 02:11    <DIR>          config
+2026-06-09  오후 02:11             2,955 conftest.py
+2026-06-09  오후 02:11    <DIR>          DevProject
+2026-06-09  오후 02:11             1,299 Dockerfile
+2026-06-09  오후 02:11    <DIR>          docs
+2026-06-09  오후 02:11               585 LICENSE.md
+2026-06-09  오후 02:11    <DIR>          localized_docs
+2026-06-09  오후 02:11               550 markdown-link-check.fast.json
+2026-06-09  오후 02:11             1,175 markdown-link-check.full.json
+2026-06-09  오후 02:11             2,476 mkdocs.yml
+2026-06-09  오후 02:17    <DIR>          ml-agents
+2026-06-09  오후 02:17    <DIR>          ml-agents-envs
+2026-06-09  오후 02:11    <DIR>          ml-agents-plugin-examples
+2026-06-09  오후 02:11    <DIR>          ml-agents-trainer-plugin
+2026-06-09  오후 02:11    <DIR>          PerformanceProject
+2026-06-09  오후 02:48    <DIR>          Project
+2026-06-09  오후 02:11    <DIR>          protobuf-definitions
+2026-06-09  오후 02:11                94 pytest.ini
+2026-06-09  오후 02:11            10,019 Readme.md
+2026-06-09  오후 02:11             1,052 setup.cfg
+2026-06-09  오후 02:11               377 SURVEY.md
+2026-06-09  오후 02:11               182 test_constraints_version.txt
+2026-06-09  오후 02:11               131 test_requirements.txt
+2026-06-09  오후 02:11             7,929 Third Party Notices.md
+2026-06-09  오후 02:11    <DIR>          unity-volume
+2026-06-09  오후 02:11    <DIR>          utils
+              23개 파일              41,305 바이트
+              19개 디렉터리  1,970,603,925,504 바이트 남음
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents>cd config
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config>cd ppo
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>dur
+'dur'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
+배치 파일이 아닙니다.
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>dir
+ C 드라이브의 볼륨에는 이름이 없습니다.
+ 볼륨 일련 번호: 6E60-F78F
+
+ C:\Users\Administrator\Desktop\ml-agents\config\ppo 디렉터리
+
+2026-06-09  오후 02:11    <DIR>          .
+2026-06-09  오후 02:11    <DIR>          ..
+2026-06-09  오후 02:11               564 3DBall.yaml
+2026-06-09  오후 02:11               569 3DBallHard.yaml
+2026-06-09  오후 02:11               798 3DBall_randomize.yaml
+2026-06-09  오후 02:11               556 Basic.yaml
+2026-06-09  오후 02:11               570 Crawler.yaml
+2026-06-09  오후 02:11               577 FoodCollector.yaml
+2026-06-09  오후 02:11               562 GridWorld.yaml
+2026-06-09  오후 02:11               635 Hallway.yaml
+2026-06-09  오후 02:11             1,171 Match3.yaml
+2026-06-09  오후 02:11               566 PushBlock.yaml
+2026-06-09  오후 02:11               717 Pyramids.yaml
+2026-06-09  오후 02:11               734 PyramidsRND.yaml
+2026-06-09  오후 02:11             2,734 Sorter_curriculum.yaml
+2026-06-09  오후 02:11               569 Visual3DBall.yaml
+2026-06-09  오후 02:11               580 VisualFoodCollector.yaml
+2026-06-09  오후 02:11               569 Walker.yaml
+2026-06-09  오후 02:11             1,131 WallJump.yaml
+2026-06-09  오후 02:11             3,128 WallJump_curriculum.yaml
+2026-06-09  오후 02:11               566 Worm.yaml
+              19개 파일              17,296 바이트
+               2개 디렉터리  1,970,603,859,968 바이트 남음
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>cd ..
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config>cd ..
+
+(mlagents_env) C:\Users\Administrator\Desktop\ml-agents>mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
+C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+
+            ┐  ╖
+        ╓╖╬│╡  ││╬╖╖
+    ╓╖╬│││││┘  ╬│││││╬╖
+ ╖╬│││││╬╜        ╙╬│││││╖╖                               ╗╗╗
+ ╬╬╬╬╖││╦╖        ╖╬││╗╣╣╣╬      ╟╣╣╬    ╟╣╣╣             ╜╜╜  ╟╣╣
+ ╬╬╬╬╬╬╬╬╖│╬╖╖╓╬╪│╓╣╣╣╣╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╒╣╣╖╗╣╣╣╗   ╣╣╣ ╣╣╣╣╣╣ ╟╣╣╖   ╣╣╣
+ ╬╬╬╬┐  ╙╬╬╬╬│╓╣╣╣╝╜  ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╣╙ ╙╣╣╣  ╣╣╣ ╙╟╣╣╜╙  ╫╣╣  ╟╣╣
+ ╬╬╬╬┐     ╙╬╬╣╣      ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣     ╣╣╣┌╣╣╜
+ ╬╬╬╜       ╬╬╣╣      ╙╝╣╣╬      ╙╣╣╣╗╖╓╗╣╣╣╜ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣╦╓    ╣╣╣╣╣
+ ╙   ╓╦╖    ╬╬╣╣   ╓╗╗╖            ╙╝╣╣╣╣╝╜   ╘╝╝╜   ╝╝╝  ╝╝╝   ╙╣╣╣    ╟╣╣╣
+   ╩╬╬╬╬╬╬╦╦╬╬╣╣╗╣╣╣╣╣╣╣╝                                             ╫╣╣╣╣
+      ╙╬╬╬╬╬╬╬╣╣╣╣╣╣╝╜
+          ╙╬╬╬╣╣╣╜
+             ╙
+
+ Version information:
+  ml-agents: 1.2.0.dev0,
+  ml-agents-envs: 1.2.0.dev0,
+  Communicator API: 1.5.0,
+  PyTorch: 2.1.1+cu118
+C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  import pkg_resources
+[INFO] Listening on port 5004. Start training by pressing the Play button in the Unity Editor.
+[INFO] Connected to Unity environment with package version 4.0.0 and communication version 1.5.0
+[INFO] Connected new brain: 3DBall?team=0
+[INFO] Hyperparameters for behavior name 3DBall:
+        trainer_type:   ppo
+        hyperparameters:
+          batch_size:   64
+          buffer_size:  12000
+          learning_rate:        0.0003
+          beta: 0.001
+          epsilon:      0.2
+          lambd:        0.99
+          num_epoch:    3
+          shared_critic:        False
+          learning_rate_schedule:       linear
+          beta_schedule:        linear
+          epsilon_schedule:     linear
+        checkpoint_interval:    500000
+        network_settings:
+          normalize:    True
+          hidden_units: 128
+          num_layers:   2
+          vis_encode_type:      simple
+          memory:       None
+          goal_conditioning_type:       hyper
+          deterministic:        False
+        reward_signals:
+          extrinsic:
+            gamma:      0.99
+            strength:   1.0
+            network_settings:
+              normalize:        False
+              hidden_units:     128
+              num_layers:       2
+              vis_encode_type:  simple
+              memory:   None
+              goal_conditioning_type:   hyper
+              deterministic:    False
+        init_path:      None
+        keep_checkpoints:       5
+        even_checkpoints:       False
+        max_steps:      500000
+        time_horizon:   1000
+        summary_freq:   12000
+        threaded:       False
+        self_play:      None
+        behavioral_cloning:     None
+[INFO] 3DBall. Step: 12000. Time Elapsed: 41.989 s. Mean Reward: 1.161. Std of Reward: 0.659. Training.
+[INFO] 3DBall. Step: 24000. Time Elapsed: 68.721 s. Mean Reward: 1.361. Std of Reward: 0.748. Training.
+[INFO] 3DBall. Step: 36000. Time Elapsed: 92.955 s. Mean Reward: 1.957. Std of Reward: 1.293. Training.
+[INFO] 3DBall. Step: 48000. Time Elapsed: 114.865 s. Mean Reward: 3.109. Std of Reward: 2.295. Training.
+[INFO] 3DBall. Step: 60000. Time Elapsed: 137.996 s. Mean Reward: 6.734. Std of Reward: 6.542. Training.
+[INFO] 3DBall. Step: 72000. Time Elapsed: 160.364 s. Mean Reward: 14.382. Std of Reward: 17.339. Training.
+[INFO] 3DBall. Step: 84000. Time Elapsed: 181.113 s. Mean Reward: 42.150. Std of Reward: 31.923. Training.
+[INFO] 3DBall. Step: 96000. Time Elapsed: 203.161 s. Mean Reward: 78.531. Std of Reward: 35.336. Training.
+[INFO] 3DBall. Step: 108000. Time Elapsed: 220.691 s. Mean Reward: 80.414. Std of Reward: 36.942. Training.
+[INFO] 3DBall. Step: 120000. Time Elapsed: 239.746 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 132000. Time Elapsed: 262.158 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 144000. Time Elapsed: 284.058 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 156000. Time Elapsed: 303.300 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 168000. Time Elapsed: 326.887 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 180000. Time Elapsed: 350.978 s. Mean Reward: 90.421. Std of Reward: 20.504. Training.
+[INFO] 3DBall. Step: 192000. Time Elapsed: 373.662 s. Mean Reward: 99.083. Std of Reward: 3.040. Training.
+[INFO] 3DBall. Step: 204000. Time Elapsed: 396.295 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 216000. Time Elapsed: 414.660 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 228000. Time Elapsed: 438.379 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 240000. Time Elapsed: 460.866 s. Mean Reward: 98.950. Std of Reward: 3.482. Training.
+[INFO] 3DBall. Step: 252000. Time Elapsed: 485.476 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 264000. Time Elapsed: 495.995 s. Mean Reward: 96.958. Std of Reward: 10.088. Training.
+[INFO] 3DBall. Step: 276000. Time Elapsed: 520.150 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 288000. Time Elapsed: 544.605 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 300000. Time Elapsed: 565.644 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 312000. Time Elapsed: 585.158 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 324000. Time Elapsed: 603.044 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 336000. Time Elapsed: 625.482 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 348000. Time Elapsed: 644.420 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 360000. Time Elapsed: 668.542 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 372000. Time Elapsed: 698.165 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 384000. Time Elapsed: 721.602 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 396000. Time Elapsed: 741.762 s. Mean Reward: 92.469. Std of Reward: 26.087. Training.
+[INFO] 3DBall. Step: 408000. Time Elapsed: 769.835 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 420000. Time Elapsed: 795.590 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 432000. Time Elapsed: 821.109 s. Mean Reward: 92.438. Std of Reward: 26.194. Training.
+[INFO] 3DBall. Step: 444000. Time Elapsed: 831.132 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 456000. Time Elapsed: 860.699 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 468000. Time Elapsed: 889.137 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 480000. Time Elapsed: 918.534 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] 3DBall. Step: 492000. Time Elapsed: 946.753 s. Mean Reward: 100.000. Std of Reward: 0.000. Training.
+[INFO] Exported results\test_3dball\3DBall\3DBall-499267.onnx
+[INFO] Exported results\test_3dball\3DBall\3DBall-500267.onnx
+[INFO] Copied results\test_3dball\3DBall\3DBall-500267.onnx to results\test_3dball\3DBall.onnx.
+```
+
+
 **실제 저장소의 `config/ppo/3DBall.yaml` 내용 (PPO):**
 
 ```yaml
