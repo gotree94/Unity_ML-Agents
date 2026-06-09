@@ -1,5 +1,7 @@
 # GridWorld 예제 가이드
 
+![](../img/GridWorld.gif)
+
 ## 1. 개요
 
 GridWorld는 격자(Grid) 위에서 에이전트가 목표 지점을 찾아 이동하는 환경입니다.
