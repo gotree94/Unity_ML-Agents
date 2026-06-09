@@ -245,7 +245,7 @@ conda config --set channel_priority strict
 
 ```bash
 pip install mlagents==1.1.0
-pip install torch==2.1.0 --index-url https://download.pytorch.org/whl/cu118
+pip install torch==2.1.1 --index-url https://download.pytorch.org/whl/cu118
 pip install tensorboard
 ```
 
@@ -272,7 +272,7 @@ Conda 채널과 pip를 혼용합니다. conda 패키지를 **먼저** 설치한 
 
 ```bash
 # 1) conda 채널 (CUDA 포함 PyTorch)
-conda install pytorch==2.1.0 torchvision==0.16.0 torchaudio==2.1.0 cudatoolkit=11.8 -c pytorch -c nvidia -y
+conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 cudatoolkit=11.8 -c pytorch -c nvidia -y
 conda install numpy pandas matplotlib tensorboard -c conda-forge -y
 
 # 2) pip (conda 채널에 없는 패키지)
@@ -301,9 +301,9 @@ channels:
   - defaults
 dependencies:
   - python=3.10.12
-  - pytorch=2.1.0
-  - torchvision=0.16.0
-  - torchaudio=2.1.0
+  - pytorch=2.1.1
+  - torchvision=0.16.1
+  - torchaudio=2.1.1
   - cudatoolkit=11.8
   - numpy=1.24.3
   - pandas=2.0.3
@@ -338,9 +338,9 @@ dependencies:
   - pip>=23.0
 
   # --- PyTorch + CUDA ---
-  - pytorch=2.1.0
-  - torchvision=0.16.0
-  - torchaudio=2.1.0
+  - pytorch=2.1.1
+  - torchvision=0.16.1
+  - torchaudio=2.1.1
   - cudatoolkit=11.8
 
   # --- 데이터/시각화 ---
