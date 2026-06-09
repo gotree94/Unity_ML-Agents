@@ -793,6 +793,8 @@ ML-Agents는 17개의 예제 환경을 제공합니다. 각 예제는 특정 ML-
 
 ### 3.6.1 Basic (입문용)
 
+![](img/Basic.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/Basic/Scenes/Basic.unity`
 - **목적:** ML-Agents의 가장 단순한 예제. 에이전트가 1차원 선 위에서 좌/우로 이동하며 가장 높은 보상을 받는 상태를 찾는 문제입니다.
 - **개념 학습:** Discrete Action, Vector Observation의 가장 기본적인 사용법
