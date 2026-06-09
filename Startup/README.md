@@ -150,17 +150,76 @@ Startup 스크립트가 원하는 씬을 로드하도록 합니다.
 
 ---
 
-## 5. 파일 구조
+## 5. 전체 파일 구조와 각 파일의 의미
 
 ```
 Startup/
 ├── Scenes/
-│   └── Startup.unity                # Startup 씬
+│   └── Startup.unity                            # (1) 유일한 씬
+│
 ├── Scripts/
-│   └── Startup.cs                   # 씬 로더 유틸리티
+│   └── Startup.cs                               # (2) 씬 로더 유틸리티
+│
 └── Prefabs/
-    └── Startup.prefab
+    └── Startup.prefab                           # (3) 프리팹
 ```
+
+---
+
+### (1) `Scenes/Startup.unity` — 유일한 씬
+
+**씬 계층 구조**:
+```
+Startup.unity
+├── Main Camera
+├── Startup
+│   └── Startup (Startup.cs)
+└── EventSystem
+```
+
+가장 단순한 씬입니다. 씬에는 Startup 스크립트가 붙은 오브젝트 하나만 존재하며,
+이 스크립트가 `Awake()`에서 실행할 씬을 결정합니다.
+
+**모든 ML-Agents 예제가 이 씬을 첫 번째 빌드 인덱스로 사용**합니다.
+빌드된 실행 파일이 실행되면 Startup 씬이 가장 먼저 로드되고,
+즉시 설정된 타겟 씬으로 전환됩니다.
+
+### (2) `Scripts/Startup.cs` — 씬 로더 유틸리티
+
+ML-Agents 예제 중 **유일하게 Agent를 상속받지 않는** 스크립트입니다.
+
+```csharp
+internal class Startup : MonoBehaviour
+{
+    const string k_SceneVariableName = "SCENE_NAME";
+    const string k_SceneCommandLineFlag = "--mlagents-scene-name";
+
+    void Awake()
+    {
+        sceneName = GetSceneName();
+        SwitchScene(sceneName);
+    }
+}
+```
+
+**동작 흐름**:
+```
+1. 명령줄 인수 확인 (--mlagents-scene-name)
+2. 환경 변수 확인 (SCENE_NAME) ← CLI보다 우선
+3. sceneName이 null → Application.Quit(22)
+4. 씬이 빌드에 없음 → Application.Quit(22)  
+5. 정상 → SceneManager.LoadSceneAsync(sceneName)
+```
+
+| 우선순위 | 출처 | 예시 |
+|----------|------|------|
+| 1위 (높음) | 환경 변수 `SCENE_NAME` | `$env:SCENE_NAME = "..."` |
+| 2위 (낮음) | CLI 인수 `--mlagents-scene-name` | `MyApp.exe --mlagents-scene-name "..."` |
+
+### (3) `Prefabs/Startup.prefab` — 프리팹
+
+Startup 스크립트를 포함한 간단한 프리팹입니다.
+ML-Agents 빌드 시 자동으로 포함됩니다.
 
 ---
 

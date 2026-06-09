@@ -333,31 +333,142 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 WallJump/
 ├── Scenes/
-│   └── WallJump.unity
+│   ├── WallJump.unity                       # (1) 단일 에이전트 씬
+│   ├── WallJumpDynamic.unity                # (2) 동적 벽 씬
+│   └── WallJump/                            # (3) 라이트맵 데이터
+│       ├── LightingData.asset
+│       └── ReflectionProbe-0.exr
+│
 ├── Scripts/
-│   ├── WallJumpAgent.cs        # 메인 에이전트
-│   └── WallJumpSettings.cs     # 설정
+│   ├── WallJumpAgent.cs                     # (4) 메인 에이전트
+│   ├── WallJumpDynamicSettings.cs           # (5) 동적 벽 설정
+│   └── GoalDetect.cs                        # (6) 골 감지
+│
 ├── Prefabs/
-│   └── WallJumpArea.prefab
-├── Meshes/
-│   ├── GoalArea.fbx
-│   └── ShortBlock.fbx
-├── Materials/
-│   ├── spawnVolumeMaterial.mat
-│   ├── TransparentWall.mat
-│   ├── WallJumpCourt.mat
-│   ├── WallJumpCourtFail.mat
-│   ├── WallJumpCourtSuccess.mat
-│   └── WallJumpSky.mat
+│   ├── WallJumpArea.prefab                  # (7) 정적 벽
+│   └── WallJumpDynamicArea.prefab           # (8) 동적 벽
+│
 ├── TFModels/
-│   ├── BigWallJump.onnx
-│   └── SmallWallJump.onnx
+│   ├── WallJump.onnx                        # (9) 정적 ONNX
+│   └── WallJumpDynamic.onnx                 # (10) 동적 ONNX
+│
+└── Demos/
+    └── ExpertWallJump.demo                  # (11) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/WallJump.unity` — 정적 벽 씬
+
+**씬 계층 구조**:
+```
+WallJump.unity
+├── Main Camera
+├── Area (WallJumpArea.prefab)
+│   ├── WallJumpAgent      ← WallJumpAgent.cs
+│   ├── SmallGoal           ← 작은 골
+│   ├── LargeGoal           ← 큰 골
+│   ├── Wall (중앙 벽)
+│   └── Floor
+└── EventSystem
+```
+
+**목표 복잡도 4단계 제기**: 에이전트는 벽을 넘어 반대편 목표에 도달해야 합니다.
+
+### (2) `Scenes/WallJumpDynamic.unity` — 동적 벽 씬
+
+`WallJumpDynamicArea.prefab` 사용. 정적 버전과 달리 중앙 벽의 높이가
+에피소드마다 변경됩니다. `WallJumpDynamicSettings`의
+`EnvironmentParameters` 콜백으로 제어됩니다.
+
+### (3) `Scenes/WallJump/` — 라이트맵 데이터
+
+프리베이크된 조명 데이터로 씬에 자연스러운 조명을 제공합니다.
+
+### (4) `Scripts/WallJumpAgent.cs` — 메인 에이전트
+
+WallJumpAgent는 **점프를 포함한 다양한 이동 전략**을 배웁니다.
+
+| 기능 | 설명 |
+|------|------|
+| 액션 공간 | 이산 (방향 4 × 회전 3 × 점프 2) = 24개 조합 |
+| 관찰 | 레이캐스트 기반 거리 감지 4개 |
+| 보상 | `+1` (성공), `-0.001` (스텝) |
+| 점프 | `transform.up` 방향 적용 + 쿨다운 타이머 |
+
+```csharp
+// 복합 이산 액션 처리
+int forward = Mathf.FloorToInt(actionBuffers.DiscreteActions[0]); // 0~3
+int turn = Mathf.FloorToInt(actionBuffers.DiscreteActions[1]);    // 0~2
+int jump = Mathf.FloorToInt(actionBuffers.DiscreteActions[2]);    // 0~1
+
+dirToGo = forwardDir * (forward switch { 1 => 1f, 2 => -1f, _ => 0f });
+rotateDir = turn switch { 1 => -1f, 2 => 1f, _ => 0f };
+if (jump == 1 && !m_Jumping && Time.time > m_JumpTime + jumpCooldown)
+{
+    rb.AddForce(Vector3.up * jumpForce, ForceMode.VelocityChange);
+    m_Jumping = true;
+}
+```
+
+**Curriculum Learning 지원**: `WallJumpReset()`에서 난이도 파라미터 적용
+
+### (5) `Scripts/WallJumpDynamicSettings.cs` — 동적 벽 설정
+
+```
+// 에피소드마다 벽 높이 변경
+EnvironmentParameters envParams = Academy.Instance.EnvironmentParameters;
+envParams.RegisterCallback("wall_height", f => {
+    thisWall.transform.localScale = new Vector3(1, f, 1);
+    thisWall.transform.localPosition = new Vector3(0, f/2f + floorY, 0);
+});
+```
+
+| 파라미터 | 기본값 | 설명 |
+|----------|--------|------|
+| `wall_height` | 환경에서 전달 | 동적 벽 높이 |
+| `agent_scale` | 4.0 | 에이전트 크기 |
+
+### (6) `Scripts/GoalDetect.cs` — 골 감지
+
+`OnCollisionEnter`로 골에 도달했는지 감지하고 `WallJumpAgent.ScoredAGoal()` 호출.
+
+### (7) `Prefabs/WallJumpArea.prefab` — 정적 벽
+
+프리팹 구성:
+- 중앙 벽 (고정 높이, `WallJumpAgent` 포함)
+- `SmallGoal` (작은 골, `tag=goal`)
+- `LargeGoal` (큰 골, `tag=goal`)
+- `Floor`
+
+### (8) `Prefabs/WallJumpDynamicArea.prefab` — 동적 벽
+
+- 중앙 벽이 `WallJumpDynamicSettings`에 의해 동적 제어됨
+- `EnvironmentParameters`로 벽 높이 실시간 변경
+
+### (9) `TFModels/WallJump.onnx` — 정적 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습 | 기본 PPO |
+| 벽 높이 | 고정 |
+
+### (10) `TFModels/WallJumpDynamic.onnx` — 동적 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습 | Curriculum PPO |
+| 벽 높이 | 0.5~3.5 (점진적 증가) |
+| 입력 | 4개 레이캐스트 상태 |
+
+### (11) `Demos/ExpertWallJump.demo` — 전문가 데모
+
+Behavioral Cloning 학습용 전문가 궤적 데이터입니다.
 
 ---
 

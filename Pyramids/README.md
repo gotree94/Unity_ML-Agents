@@ -308,31 +308,164 @@ if (other.gameObject.CompareTag("agent") && m_State == false)
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Pyramids/
 ├── Scenes/
-│   └── Pyramids.unity
+│   ├── Pyramids.unity                        # (1) 기본 (PPO) 씬
+│   ├── PyramidsSAC.unity                     # (2) SAC 전용 씬
+│   └── Pyramids/                             # (3) 라이트맵 데이터
+│       ├── LightingData.asset
+│       └── ReflectionProbe-0.exr
+│
 ├── Scripts/
-│   ├── PyramidAgent.cs       # 메인 에이전트
-│   ├── PyramidArea.cs        # 환경 생성/관리
-│   └── PyramidSwitch.cs      # 스위치 로직
+│   ├── PyramidsAgent.cs                      # (4) 기본 에이전트
+│   ├── PyramidsArea.cs                       # (5) 기본 환경 생성
+│   ├── PyramidsMemoryAgent.cs                # (6) 메모리 기반 에이전트
+│   ├── PyramidsMemoryArea.cs                 # (7) RNN 환경
+│   └── SwitchBehaviours.cs                   # (8) Behavior 전환 로직
+│
 ├── Prefabs/
-│   ├── AreaPB.prefab
-│   ├── BrickPyramid.prefab
-│   └── StonePyramid.prefab
-├── Meshes/
-│   ├── CruciformWall.fbx
-│   ├── SideWalls.fbx
-│   ├── SpawnAreas.fbx
-│   ├── Switch.fbx
-│   └── Walls.fbx
+│   ├── PyramidsArea.prefab                   # (9) 기본 프리팹
+│   ├── PyramidsMemoryArea.prefab             # (10) RNN 프리팹
+│   └── PyramidsSACArea.prefab                # (11) SAC 프리팹
+│
 ├── TFModels/
-│   └── Pyramids.onnx
+│   ├── Pyramids.onnx                         # (12) PPO ONNX
+│   ├── PyramidsSAC.onnx                      # (13) SAC ONNX
+│   └── PyramidsMemory.onnx                   # (14) RNN ONNX
+│
 └── Demos/
-    └── ExpertPyramid.demo
+    └── ExpertPyramids.demo                   # (15) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/Pyramids.unity` — 기본 (PPO) 씬
+
+**씬 계층 구조**:
+```
+Pyramids.unity
+├── Main Camera
+├── PyramidsArea (PyramidsArea.prefab)
+│   ├── PyramidsAgent
+│   ├── area (PyramidsArea.cs)
+│   ├── SwitchBehaviours
+│   ├── Stone (스위치 위의 돌)
+│   ├── Pyramid
+│   ├── Button (스위치)
+│   └── Walls/Floor
+└── EventSystem
+```
+
+**계층적 과제**: 스위치 → 돌 떨어짐 → 돌을 피라미드에 밀어넣음 → 보상
+
+### (2) `Scenes/PyramidsSAC.unity` — SAC 전용 씬
+
+`PyramidsSACArea.prefab` 사용. PPO와 동일한 환경이지만 SAC(Soft Actor-Critic)
+알고리즘에 최적화된 설정 사용.
+
+### (3) `Scenes/Pyramids/` — 라이트맵
+
+베이크된 씬 조명 데이터.
+
+### (4) `Scripts/PyramidsAgent.cs` — 기본 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | RayPerceptionSensor 6개 + 추가 상태 |
+| 액션 | 이산 7개 (정지/전진/후진/좌/우/좌회전/우회전) |
+| 계층적 보상 | 돌 제거 성공 `+2`, 피라미드 도달 `+1` |
+| 액션 마스킹 | 스위치 누른 후 돌이 없으면 "돌 밀기" 액션 차단 |
+
+```csharp
+public override void WriteDiscreteActionMask(IDiscreteActionMask actionMask)
+{
+    if (m_Stone == null) {
+        // 돌이 없으면 돌 밀기(액션 2) 차단
+        actionMask.SetActionEnabled(0, PushAction.Grab, false);
+    }
+}
+```
+
+### (5) `Scripts/PyramidsArea.cs` — 기본 환경 생성
+
+| 역할 | 설명 |
+|------|------|
+| 피라미드 생성 | 랜덤 위치, 무작위 회전 |
+| 돌 초기화 | 스위치 위에 생성 |
+| 스위치 설정 | 눌렸을 때 돌 떨어짐 처리 |
+| 리셋 | 모든 구성요소 랜덤 재배치 |
+
+### (6) `Scripts/PyramidsMemoryAgent.cs` — 메모리 기반 에이전트
+
+기본 PyramidsAgent와 동일하나 `m_UseRecurrent = true`로 RNN 활성화.
+과거의 관찰(예: 스위치 위치)을 기억해야 더 효율적으로 행동.
+
+### (7) `Scripts/PyramidsMemoryArea.cs` — RNN 환경
+
+기본 PyramidsArea와 동일하나 `PyramidsMemoryAgent`와 짝을 이룸.
+더 적은 수의 RayPerception 광선으로도 RNN이 보완.
+
+### (8) `Scripts/SwitchBehaviours.cs` — Behavior 전환 로직
+
+```csharp
+public class SwitchBehaviours : MonoBehaviour
+{
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.CompareTag("stone"))
+        {
+            // Behavior 전환 — 돌이 스위치를 눌렀을 때
+            // AgentController.RewardSwitchBehaviours() 호출
+        }
+    }
+}
+```
+
+**고급 기능**: 스위치가 눌렸을 때 돌을 밀었다는 신호를 전달.
+
+### (9) `Prefabs/PyramidsArea.prefab` — 기본 프리팹
+
+구성:
+- PyramidsAgent
+- Stone (스위치 위 Rigidbody)
+- Pyramid ("pyramid" 태그)
+- Button (스위치, SwitchBehaviours)
+- 4면 Walls + Floor
+- SpawnArea
+
+### (10) `Prefabs/PyramidsMemoryArea.prefab` — RNN 프리팹
+
+기본에서 `RayPerceptionSensor` 수 줄임 + RNN 설정.
+
+### (11) `Prefabs/PyramidsSACArea.prefab` — SAC 프리팹
+
+기본과 동일한 구조지만 `Behavior Parameters`에 SAC 특화 설정 적용.
+
+### (12) `TFModels/Pyramids.onnx` — PPO ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 액션 마스킹 | 지원 (돌 없을 때 Grab 차단) |
+
+### (13) `TFModels/PyramidsSAC.onnx` — SAC ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | SAC |
+| 특성 | Deterministic policy |
+
+### (14) `TFModels/PyramidsMemory.onnx` — RNN ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO + RNN |
+| Sequence Length | 64 (기본) |
+
+### (15) `Demos/ExpertPyramids.demo` — 전문가 데모
 
 ---
 

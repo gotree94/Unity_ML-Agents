@@ -280,24 +280,145 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Hallway/
 ├── Scenes/
-│   └── Hallway.unity
+│   ├── Hallway.unity                        # (1) 기본 씬
+│   ├── HallwayVisual.unity                  # (2) 시각 관찰 씬
+│   └── Hallway/                             # (3) 라이트맵 데이터
+│       └── LightingData.asset
+│
 ├── Scripts/
-│   ├── HallwayAgent.cs       # 메인 에이전트
-│   └── HallwaySettings.cs    # 설정
+│   ├── HallwayAgent.cs                      # (4) 기본 에이전트
+│   ├── HallwayMemoryAgent.cs                # (5) 메모리 기반 에이전트 (RNN)
+│   └── HallwayArea.cs                       # (6) 환경 생성
+│
 ├── Prefabs/
-│   └── HallwayArea.prefab
-├── Meshes/
-│   └── Ground.fbx
+│   ├── HallwayArea.prefab                   # (7) 기본 영역 프리팹
+│   └── HallwayVisualArea.prefab             # (8) 시각 영역 프리팹
+│
 ├── TFModels/
-│   └── Hallway.onnx
+│   ├── Hallway.onnx                         # (9) 기본 ONNX
+│   └── HallwayVisual.onnx                   # (10) 시각 ONNX
+│
 └── Demos/
-    └── ExpertHallway.demo
+    └── ExpertHallway.demo                   # (11) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/Hallway.unity` — 기본 씬
+
+**씬 계층 구조**:
+```
+Hallway.unity
+├── Main Camera
+├── HallwayArea (HallwayArea.prefab)
+│   ├── agent (HallwayAgent/Agent + DecisionRequester + BehaviorParameters)
+│   ├── platform (초록색/빨간색 구분 마커)
+│   ├── goal (골 영역, 특정 위치)
+│   └── HallwayArea.cs
+└── EventSystem
+```
+
+**메모리(기억력) 테스트**: 에이전트는 복도 입구에서 초록색/빨간색 구분 신호를 보고,
+해당 기억을 유지한 채 복도를 지나 목표 방향을 선택해야 합니다.
+
+### (2) `Scenes/HallwayVisual.unity` — 시각 관찰 씬
+
+기본과 동일하나 `HallwayVisualArea.prefab`을 사용하며,
+에이전트에 `CameraSensorComponent`가 추가되어 시각 정보를 처리합니다.
+
+### (3) `Scenes/Hallway/` — 라이트맵
+
+씬 조명 데이터.
+
+### (4) `Scripts/HallwayAgent.cs` — 기본 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | RayPerceptionSensor 12개 광선 |
+| 액션 | 이산 4개 (앞/뒤/좌/우 회전) |
+| 기억 | 없음 — 현재 관찰만으로 결정 (부분 관찰 가능) |
+| 보상 | `+1` 정답, `-0.5` 오답, `-0.0025` 스텝 |
+
+```csharp
+// 복도 입구에서 초록/빨강을 관찰하지만, 이후에는 시야에서 사라짐
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    if (m_StepCounter >= m_FirstDecisionTime && m_StepCounter <= m_LastDecisionTime)
+    {
+        // 복도 통과 후 결정 — 초록/빨강 관찰 불가
+        // 태그로만 판단: "goal" 태그에 부딪히면 정답
+    }
+}
+```
+
+**핵심 과제**: 에이전트는 관찰이 중단된 후에도 올바른 결정을 기억해야 합니다.
+
+### (5) `Scripts/HallwayMemoryAgent.cs` — 메모리 기반 에이전트
+
+HallwayAgent와 동일하나 **RNN(재귀 신경망)**을 사용합니다.
+
+```csharp
+[SerializeField] private bool m_UseRecurrent = true;  // RNN 활성화
+```
+
+| 기능 | 설명 |
+|------|------|
+| 메모리 방식 | RNN (LSTM) — 내부 은닉 상태 유지 |
+| Behavior Parameters | `Memory Length` 설정 필요 |
+| 학습 | PPO + RNN (sequence-based training) |
+
+### (6) `Scripts/HallwayArea.cs` — 환경 생성
+
+| 역할 | 설명 |
+|------|------|
+| 플랫폼 설정 | 초록색(bad = 왼쪽) 또는 빨간색(good = 오른쪽) 무작위 배치 |
+| 골 설정 | 플랫폼 색상에 따라 올바른 골 방향 결정 |
+| 리셋 | 에피소드마다 위치/색상 랜덤화 |
+
+```csharp
+private void RandomPlatformAndGoal()
+{
+    goodPlatform = (Random.Range(0, 2) == 0);  // true: right = good
+    // goodPlatform이 true면 오른쪽(goalRight)이 정답
+    // goodPlatform이 false면 왼쪽(goalLeft)이 정답
+}
+```
+
+### (7) `Prefabs/HallwayArea.prefab` — 기본 영역
+
+- 에이전트
+- 복도 (긴 통로 구조)
+- Platform (초록/빨강)
+- Goal × 2 (왼쪽/오른쪽)
+
+### (8) `Prefabs/HallwayVisualArea.prefab` — 시각 영역
+
+- HallwayArea에 CameraSensorComponent 추가
+- `Observation Stacks: 1` (공간적 관찰)
+
+### (9) `TFModels/Hallway.onnx` — 기본 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 입력 | 12개 RayPerception + 상태 |
+| 액션 | 4개 이산 |
+| 네트워크 | MLP 2층 × 128 |
+
+### (10) `TFModels/HallwayVisual.onnx` — 시각 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 입력 | Camera 84×84 RGB |
+| 네트워크 | CNN (Conv + MLP) |
+
+### (11) `Demos/ExpertHallway.demo` — 전문가 데모
+
+사람이 올바른 방향으로 이동한 기록입니다.
 
 ---
 

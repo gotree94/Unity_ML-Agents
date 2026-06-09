@@ -451,22 +451,163 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Match3/
 ├── Scenes/
-│   └── Match3.unity
+│   └── Match3.unity                                # (1) 유일한 씬
+│
 ├── Scripts/
-│   ├── Match3Agent.cs                    # 메인 에이전트
-│   ├── Match3Board.cs                    # 보드 로직
-│   ├── Match3ExampleActuator.cs          # 커스텀 액추에이터
-│   ├── Match3ExampleActuatorComponent.cs # 액추에이터 컴포넌트
-│   ├── Match3Drawer.cs                   # 보드 시각화
-│   └── Match3TileSelector.cs             # 타일 시각화
+│   ├── Match3Agent.cs                              # (2) 메인 에이전트 (State Machine)
+│   ├── Match3Board.cs                              # (3) 보드 로직 (AbstractBoard)
+│   ├── Match3ExampleActuator.cs                    # (4) 커스텀 액추에이터 (Match3Actuator)
+│   ├── Match3ExampleActuatorComponent.cs           # (5) 액추에이터 컴포넌트
+│   ├── Match3Drawer.cs                             # (6) 보드 시각화 (Gizmos)
+│   └── Match3TileSelector.cs                       # (7) 타일 시각화 (머티리얼)
+│
 └── TFModels/
-    └── Match3.onnx
+    └── Match3.onnx                                 # (8) 사전 학습 ONNX
 ```
+
+---
+
+### (1) `Scenes/Match3.unity` — 유일한 씬
+
+**씬 계층 구조**:
+```
+Match3.unity
+├── Main Camera (직교 투영)
+├── Directional Light
+├── Match3
+│   ├── Match3Agent (Match3Agent.cs)
+│   ├── Match3Board (Match3Board.cs)
+│   ├── Match3ExampleActuatorComponent
+│   ├── Match3Drawer (Match3Drawer.cs)
+│   └── Match3TileSelector (Match3TileSelector.cs)
+└── EventSystem
+```
+
+**2D 게임 스타일**: 카메라는 직교 투영(Orthographic)으로 보드를 내려다봄.
+씬에 물리 오브젝트나 Rigidbody가 없음 — 순수한 로직 기반 환경.
+
+### (2) `Scripts/Match3Agent.cs` — 메인 에이전트
+
+Match3 게임의 전체 상태를 관리하는 **상태 머신**입니다.
+
+```csharp
+public class Match3Agent : Agent
+{
+    public Match3Board Board;
+    public float MoveTime = 1.0f;
+    public int MaxMoves = 500;
+
+    const float k_RewardMultiplier = 0.01f;
+}
+```
+
+**상태 머신**:
+```
+FindMatches → ClearMatched → Drop → FillEmpty → FindMatches
+                                      ↓
+                                 WaitForMove
+```
+- **FastUpdate()** (학습 모드): 체인 매치를 루프로 즉시 처리
+- **AnimatedUpdate()** (표시 모드): MoveTime 간격으로 천천히 처리
+
+**보상**: `k_RewardMultiplier * pointsEarned` (체인 매치 누적)
+
+### (3) `Scripts/Match3Board.cs` — 보드 로직 (AbstractBoard)
+
+**AbstractBoard 상속**: ML-Agents의 Match3 통합 API를 활용합니다.
+
+```csharp
+public class Match3Board : AbstractBoard
+{
+    public int MinRows = 5, MaxRows = 8;
+    public int MinColumns = 5, MaxColumns = 8;
+    public int NumCellTypes;
+    public int NumSpecialTypes;
+    public int BasicCellPoints = 1;
+    public int SpecialCell1Points = 2;
+    public int SpecialCell2Points = 3;
+}
+```
+
+| 메서드 | 역할 |
+|--------|------|
+| `MarkMatchedCells()` | 가로/세로 3개 이상 연속 타일 마킹 |
+| `ClearMatchedCells()` | 마킹된 타일 제거 + 점수 계산 |
+| `DropCells()` | 빈 공간으로 타일 하강 (중력) |
+| `FillFromAbove()` | 빈 셀을 새 랜덤 타일로 채움 |
+| `MakeMove(Move)` | 타일 교체 (AbstractBoard 인터페이스) |
+| `InitSettled()` | 매치 없는 안정화된 보드 생성 |
+
+**타일별 점수**:
+
+| 타일 종류 | 점수 |
+|-----------|------|
+| BasicCell (일반 타일) | 1 |
+| SpecialCell1 (구체 모양) | 2 |
+| SpecialCell2 (십자가 모양) | 3 |
+
+**체인 매치 처리**: FastUpdate에서 while 루프로 여러 단계의 매치를 한 번에 처리
+
+### (4) `Scripts/Match3ExampleActuator.cs` — 커스텀 액추에이터
+
+`Match3Actuator`를 상속받아 커스텀 점수 평가 함수를 제공합니다.
+
+```csharp
+public class Match3ExampleActuator : Match3Actuator
+{
+    protected override int EvalMovePoints(Move move)
+    {
+        // 양방향 예상 점수 합산
+        int movePoints = EvalHalfMove(otherRow, otherCol, moveVal, ...);
+        int otherPoints = EvalHalfMove(move.Row, move.Column, oppositeVal, ...);
+        return movePoints + otherPoints;
+    }
+}
+```
+
+**Heuristic 모드**에서 가장 높은 예상 점수의 움직임을 선택할 수 있음.
+학습 시에는 신경망이 점수 평가를 학습.
+
+### (5) `Scripts/Match3ExampleActuatorComponent.cs` — 액추에이터 컴포넌트
+
+```csharp
+public class Match3ExampleActuatorComponent : Match3ActuatorComponent
+{
+    public override IActuator[] CreateActuators()
+    {
+        return new IActuator[] {
+            new Match3ExampleActuator(board, ForceHeuristic, ActuatorName, seed)
+        };
+    }
+}
+```
+
+### (6) `Scripts/Match3Drawer.cs` — 보드 시각화
+
+**Gizmos**를 사용하여 보드 상태를 시각화합니다.
+- 각 셀의 타일 타입을 색상으로 표시
+- 유효한 움직임을 선으로 표시
+- 현재 선택된 타일 강조
+
+### (7) `Scripts/Match3TileSelector.cs` — 타일 시각화
+
+개별 타일의 시각적 표시를 관리합니다. 타일 타입과 특수 타입에 따라
+해당하는 머티리얼을 활성화/비활성화합니다.
+
+### (8) `TFModels/Match3.onnx` — 사전 학습 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 보드 크기 | 5×5 ~ 8×8 (가변) |
+| 타일 종류 | 6가지 기본 + 3가지 특수 타입 |
+| 액션 | 인접 타일 교체 (Match3Actuator 제공) |
+| 특이사항 | AbstractBoard + Match3Actuator 통합 API 사용 |
 
 ---
 

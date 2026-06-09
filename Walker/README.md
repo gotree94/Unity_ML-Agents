@@ -305,24 +305,154 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Walker/
 ├── Scenes/
-│   └── Walker.unity
+│   ├── WalkerStatic.unity                     # (1) 정적 타겟 씬 (PPO)
+│   ├── WalkerDynamic.unity                    # (2) 동적 타겟 씬 (MA-POCA)
+│   └── Walker/                                # (3) 라이트맵 데이터
+│       ├── LightingData.asset
+│       └── ReflectionProbe-0.exr
+│
 ├── Scripts/
-│   └── WalkerAgent.cs             # 메인 에이전트
+│   ├── WalkerAgent.cs                         # (4) 메인 Agent (보행 제어)
+│   ├── WalkerDynamicTarget.cs                 # (5) 동적 타겟
+│   └── JointDriveController.cs                # (6) 관절 제어 (Crawler/Worm과 공유)
+│
 ├── Prefabs/
-│   ├── Platforms/Platform.prefab
-│   └── Ragdoll/WalkerRagdoll.prefab
-├── Materials/
-│   └── WalkerCourt.mat
+│   ├── Walker.prefab                          # (7) 워커(인간형) 로봇
+│   ├── TargetStatic.prefab                    # (8) 정적 타겟
+│   └── TargetDynamic.prefab                   # (9) 동적 타겟
+│
 ├── TFModels/
-│   └── Walker.onnx
+│   ├── WalkerStatic.onnx                      # (10) 정적 PPO ONNX
+│   └── WalkerDynamic.onnx                     # (11) 동적 MA-POCA ONNX
+│
 └── Demos/
-    └── ExpertWalker.demo
+    └── ExpertWalker.demo                      # (12) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/WalkerStatic.unity` — 정적 타겟 씬 (PPO)
+
+**씬 계층 구조**:
+```
+WalkerStatic.unity
+├── Main Camera
+├── Environment
+│   ├── Ground
+│   └── Walker (Walker.prefab 인스턴스)
+│       ├ ├── WalkerAgent (Agent)
+│       ├ ├── JointDriveController (관절 제어기)
+│       ├ ├── pelvis → spine → head
+│       ├ ├── left thigh → left shin → left foot
+│       ├ ├── right thigh → right shin → right foot
+│       ├ ├── left arm → left forearm
+│       ├ └── right arm → right forearm
+│   └── TargetStatic (TargetStatic.prefab)
+└── Academy / EventSystem
+```
+
+### (2) `Scenes/WalkerDynamic.unity` — 동적 타겟 씬 (MA-POCA)
+
+`Walker` + `TargetDynamic.prefab` 사용. 타겟이 이동하며, 에이전트가 추적해야 함.
+
+### (3) `Scenes/Walker/` — 라이트맵
+
+### (4) `Scripts/WalkerAgent.cs` — 메인 Agent (보행 제어)
+
+**인간형 이족보행**: Crawler(4족)보다 더 많은 관절, 더 복잡한 균형 유지.
+
+| 항목 | 설정 |
+|------|------|
+| 관절 수 | 12개 (양쪽 다리 각 3 + 양쪽 팔 각 2 + 척추 2) |
+| 액션 | 🟢 **12차원 연속** (각 관절의 목표 각도) |
+| 관찰 | 159차원 (관절 각도/속도/힘, 타겟 방향/거리, 자이로스코프) |
+| 보상 | 타겟 방향 속도 + 생존 보너스 - 회전 패널티 - 힘 소모 |
+
+```csharp
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    // 12개 관절 각각에 타겟 회전각 적용
+    for (var i = 0; i < 12; i++)
+    {
+        var joint = jointExtensors[i];
+        joint.SetTargetRotation(actionBuffers.ContinuousActions[i] * joint.maxJointRotation);
+    }
+}
+```
+
+**보상 구조**:
+```
+r = 벨로시티_인_타겟_방향
+  + 0.01f                           // 생존 보너스 (매 스텝)
+  - 0.005f * 회전_변화량              // 넘어지지 않도록
+  - 0.0001f * Σ|관절_모터_힘|         // 에너지 효율
+  - 0.02f * (허리_높이_오차)^2        // 적정 높이 유지
+```
+
+### (5) `Scripts/WalkerDynamicTarget.cs` — 동적 타겟
+
+CrawlerStaticTarget과 유사하나 타겟이 일정 범위 내에서 이동.
+
+### (6) `Scripts/JointDriveController.cs` — 관절 제어 (공유)
+
+Crawler/Walker/Worm 세 예제와 완전히 동일한 공유 클래스입니다.
+
+```csharp
+// 모든 관절은 HingeJoint로 구현
+// JointDrive.spring: 탄성 계수
+// JointDrive.damper: 감쇠 계수
+// targetRotation: -1~1 사이의 정규화된 목표 각도
+```
+
+### (7) `Prefabs/Walker.prefab` — 워커(인간형) 로봇
+
+**프리팹 계층 (인간형 골격)**:
+```
+Walker
+├── pelvis (Rigidbody)
+│   ├── spine (HingeJoint) → head
+│   ├── left thigh (HingeJoint) → left shin (HingeJoint) → left foot
+│   ├── right thigh (HingeJoint) → right shin (HingeJoint) → right foot
+│   ├── left arm (HingeJoint) → left forearm
+│   └── right arm (HingeJoint) → right forearm
+├── WalkerAgent.cs
+├── JointDriveController.cs
+└── 각 WalkerJointExtensor.cs (관절마다 부착)
+```
+
+| 신체 부위 | 개수 | 관절 유형 | 역할 |
+|----------|------|----------|------|
+| 척추 | 1 | HingeJoint | 상체 균형 |
+| 다리 | 2개 × 3관절 | HingeJoint | 보행 (대퇴/경골/족부) |
+| 팔 | 2개 × 2관절 | HingeJoint | 균형 유지 (상완/전완) |
+
+### (8) `Prefabs/TargetStatic.prefab` — 정적 타겟
+
+랜덤 위치에 배치된 빨간색 구체.
+
+### (9) `Prefabs/TargetDynamic.prefab` — 동적 타겟
+
+이동 가능한 타겟.
+
+### (10) `TFModels/WalkerStatic.onnx` — 정적 PPO ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 액션 | 12차원 연속 |
+| 관찰 | 159차원 |
+| 예상 성능 | ~400 (최대 1000 스텝) |
+
+### (11) `TFModels/WalkerDynamic.onnx` — 동적 MA-POCA ONNX
+
+동적 타겟 추적용.
+
+### (12) `Demos/ExpertWalker.demo` — 전문가 데모
 
 ---
 

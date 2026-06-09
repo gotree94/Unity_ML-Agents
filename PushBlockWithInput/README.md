@@ -266,24 +266,169 @@ mlagents-learn config/ppo/PushBlock.yaml --run-id=PushBlockInput1
 
 ---
 
-## 7. 파일 구조
+## 7. 전체 파일 구조와 각 파일의 의미
 
 ```
 PushBlockWithInput/
 ├── Scenes/
-│   └── PushBlockWithInput.unity
+│   └── PushBlockWithInput.unity              # (1) 유일한 씬
+│
 ├── Scripts/
-│   ├── PushBlockWithInputAgentBasic.cs      # Agent
-│   ├── PushBlockWithInputPlayerController.cs # Input System 통합
-│   ├── PushBlockWithInputSettings.cs         # 설정 (점프 파라미터 포함)
-│   ├── PushBlockActions.cs                   # 자동 생성 Input 코드
-│   └── GoalDetectWithInput.cs                # 충돌 감지
+│   ├── PushBlockWithInputAgentBasic.cs        # (2) Agent
+│   ├── PushBlockWithInputPlayerController.cs  # (3) Input System 통합
+│   ├── PushBlockWithInputSettings.cs          # (4) 설정 (점프 파라미터)
+│   ├── PushBlockActions.cs                    # (5) 자동 생성 Input 코드
+│   └── GoalDetectWithInput.cs                 # (6) 충돌 감지
+│
 ├── Prefabs/
-│   └── PushBlockWithInputArea.prefab
+│   └── PushBlockWithInputArea.prefab          # (7) 영역 프리팹
+│
 ├── TFModels/
-│   └── PushBlock.onnx
-└── PushBlockActions.inputactions            # Input Action Asset
+│   └── PushBlock.onnx                         # (8) 사전 학습 ONNX
+│
+└── PushBlockActions.inputactions              # (9) Input Action Asset
 ```
+
+---
+
+### (1) `Scenes/PushBlockWithInput.unity` — 유일한 씬
+
+기본 PushBlock과 달리 한 가지씬만 있습니다. 점프 기능이 추가되어 있고
+Input System이 통합된 버전입니다.
+
+**씬 계층 구조**:
+```
+PushBlockWithInput.unity
+├── Main Camera
+├── PushBlockWithInputSettings  ← PushBlockWithInputSettings.cs
+├── Area (PushBlockWithInputArea.prefab)
+│   ├── PushBlockWithInputAgentBasic
+│   ├── PushBlockWithInputPlayerController
+│   │   └── IInputActionAssetProvider 구현
+│   ├── Block
+│   ├── Goal
+│   └── Walls/Floor
+├── Academy (자동 생성)
+└── EventSystem
+```
+
+### (2) `Scripts/PushBlockWithInputAgentBasic.cs` — Agent
+
+**기본 PushBlock과의 핵심 차이**: Agent는 더 이상 이동을 직접 처리하지 않습니다.
+
+```csharp
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    // 이동/점프는 InputActuatorComponent가 처리
+    AddReward(-1f / MaxStep);  // 시간 패널티만 부여
+}
+```
+
+Agent는 오직 **보상 지급**과 **에피소드 관리**만 담당하고,
+실제 이동은 `InputActuatorComponent` → `InputActionAsset` → `PlayerController`로
+이어지는 체인이 처리합니다.
+
+### (3) `Scripts/PushBlockWithInputPlayerController.cs` — Input System 통합
+
+**IInputActionAssetProvider 인터페이스**의 구현체로, ML-Agents와 Input System을 연결합니다.
+
+```csharp
+public class PushBlockWithInputPlayerController : MonoBehaviour, IInputActionAssetProvider
+{
+    // InputActuatorComponent가 이 메서드를 호출하여 액션 바인딩
+    public (InputActionAsset, IInputActionCollection2) GetInputActionAsset()
+    {
+        LazyInitializeActions();
+        return (m_PushBlockActions.asset, m_PushBlockActions);
+    }
+}
+```
+
+**동작 모드에 따른 차이**:
+| 모드 | 입력 소스 | 동작 |
+|------|----------|------|
+| 학습 중 | InputActuatorComponent의 가상 컨트롤러 | Python 트레이너의 결정을 InputAction으로 변환 |
+| 추론 중 | 실제 키보드/게임패드 | 사람이 WASD/Space로 직접 조작 |
+| Heuristic | 키보드 | `InputActuatorComponent`가 Heuristic 호출 |
+
+### (4) `Scripts/PushBlockWithInputSettings.cs` — 설정
+
+```csharp
+public class PushBlockWithInputSettings : MonoBehaviour
+{
+    public float agentRunSpeed;
+    public float agentRotationSpeed;
+    public float agentJumpForce;         // 점프 힘 (추가)
+    public float agentJumpCoolDown;      // 점프 쿨다운 간격 (추가)
+    public float spawnAreaMarginMultiplier;
+    public Material goalScoredMaterial;
+    public Material failMaterial;
+}
+```
+
+기본 PushBlockSettings에 `agentJumpForce`와 `agentJumpCoolDown`이 추가되었습니다.
+
+### (5) `Scripts/PushBlockActions.cs` — 자동 생성 코드
+
+Unity Input System 패키지가 `PushBlockActions.inputactions`를 기반으로
+자동 생성한 C# 코드입니다.
+
+```csharp
+// PushBlockActions — 자동 생성 (수정하지 말 것)
+public partial class @PushBlockActions : IInputActionCollection2
+{
+    // Movement 액션 맵
+    public InputActionMap @Movement;  // @Movement, @jump 등 자동 생성
+}
+```
+
+**이 파일은 직접 수정하면 안 됩니다**. Input Action Asset을 변경한 후
+Inspector의 "Save Asset" 버튼을 누르면 자동으로 재생성됩니다.
+
+### (6) `Scripts/GoalDetectWithInput.cs` — 충돌 감지
+
+기본 PushBlock의 `GoalDetect.cs`와 동일한 역할입니다. Goal 충돌 시
+`PushBlockWithInputAgentBasic.ScoredAGoal()`을 호출합니다.
+
+### (7) `Prefabs/PushBlockWithInputArea.prefab` — 영역 프리팹
+
+기본 PushBlockArea와의 차이점:
+- `PushBlockWithInputAgentBasic` 사용 (Agent 역할 축소)
+- `PushBlockWithInputPlayerController` 포함 (Input System 연동)
+- `Behavior Parameters`의 `Actuators`에 `InputActuatorComponent` 포함
+- 점프 기능을 위한 물리 설정 포함
+
+### (8) `TFModels/PushBlock.onnx` — 사전 학습 ONNX
+
+기본 PushBlock과 동일한 모델을 공유합니다. 학습과 추론이 Input System을 통해
+이루어지므로 네트워크 구조와 입력/출력이 PushBlock과 호환됩니다.
+
+### (9) `PushBlockActions.inputactions` — Input Action Asset
+
+Unity Input System의 설정 파일입니다. JSON 형식으로 저장됩니다.
+
+```json
+{
+    "maps": [
+        {
+            "name": "Movement",
+            "actions": [
+                { "name": "movement", "type": "Value", "expectedControlType": "Vector2" },
+                { "name": "jump", "type": "Button" }
+            ],
+            "bindings": [
+                { "path": "<Keyboard>/w", "action": "movement" },
+                { "path": "<Keyboard>/space", "action": "jump" }
+            ]
+        }
+    ]
+}
+```
+
+| 입력 액션 | 타입 | 키보드 바인딩 | 게임패드 바인딩 |
+|----------|------|-------------|---------------|
+| Movement/movement | Vector2 | WASD | 왼쪽 스틱 |
+| Movement/jump | Button | Space | South 버튼 |
 
 ---
 

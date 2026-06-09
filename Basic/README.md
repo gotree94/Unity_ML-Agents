@@ -277,23 +277,169 @@ mlagents-learn config/ppo/Basic.yaml --run-id=BasicTest1 --inference
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
-Basic/
+C: (.NET Assembly)
+│   Basic.dll / Basic.dll.meta           # (컴파일된 어셈블리)
+│
 ├── Scenes/
-│   └── Basic.unity
+│   └── Basic.unity                      # (1) 씬 파일
+│
 ├── Scripts/
-│   ├── BasicController.cs          # 메인 컨트롤러 (MonoBehaviour)
-│   ├── BasicSensorComponent.cs      # 커스텀 센서 (원-핫 인코딩)
-│   └── BasicActuatorComponent.cs    # 커스텀 액추에이터 (3개 이산 액션)
+│   ├── BasicController.cs               # (2) 메인 로직 (MonoBehaviour)
+│   ├── BasicController.cs.meta
+│   ├── BasicSensorComponent.cs          # (3) 커스텀 센서
+│   ├── BasicSensorComponent.cs.meta
+│   ├── BasicActuatorComponent.cs        # (4) 커스텀 액추에이터
+│   └── BasicActuatorComponent.cs.meta
+│
 ├── Prefabs/
-│   └── Basic.prefab
+│   ├── Basic.prefab                     # (5) 에이전트 프리팹
+│   └── Basic.prefab.meta
+│
 ├── TFModels/
-│   └── Basic.onnx                  # 사전 훈련된 모델
-└── Demos/
-    └── ExpertBasic.demo            # 전문가 데모
+│   ├── Basic.onnx                       # (6) 사전 학습된 ONNX 모델
+│   └── Basic.onnx.meta
+│
+├── Demos/
+│   ├── ExpertBasic.demo                 # (7) 전문가 데모 (모방 학습용)
+│   └── ExpertBasic.demo.meta
+│
+└── 각종 .meta 파일                       # (8) Unity 에셋 관리 메타데이터
 ```
+
+---
+
+### (1) `Scenes/Basic.unity` — 씬 파일
+
+Basic 예제의 유일한 씬입니다. 다른 예제들과 달리 3가지 변형이 없습니다.
+
+**씬 계층 구조**:
+```
+Basic.unity
+├── Main Camera
+├── Basic          ← BasicController + Agent + BasicSensorComponent + BasicActuatorComponent
+├── BasicSmallGoal (작은 목표, position 7)
+├── BasicLargeGoal (큰 목표, position 17)
+└── EventSystem
+```
+
+**특징**: 
+- 학습 에이전트가 `Agent`를 상속받지 않고 `MonoBehaviour`에 Sensor/Actuator를 직접 조합
+- 씬에 `Academy` 오브젝트가 없음 (필요시 자동 생성)
+- 목표 오브젝트(BasicSmallGoal, BasicLargeGoal)가 각각 position 7, 17에 배치
+
+### (2) `Scripts/BasicController.cs` — 메인 컨트롤러
+
+`Agent` 상속 없이 ML-Agents를 직접 통합하는 핵심 스크립트입니다.
+
+| 역할 | 설명 |
+|------|------|
+| 게임 로직 | position 값 관리, 목표 도달 감지, 에피소드 리셋 |
+| ML-Agents 통합 | `GetComponent<Agent>()`로 Agent 참조 후 `AddReward()`, `EndEpisode()` 호출 |
+| 의사결정 타이밍 | 학습 시 매 스텝, 추론 시 `timeBetweenDecisionsAtInference` 간격으로 `RequestDecision()` |
+
+```csharp
+// Agent가 아닌 MonoBehaviour가 Agent 메서드를 직접 호출
+m_Agent.AddReward(-0.01f);       // 스텝 패널티
+m_Agent.AddReward(0.1f);         // 작은 목표 보상
+m_Agent.EndEpisode();            // 에피소드 종료
+m_Agent.RequestDecision();       // 의사결정 요청
+```
+
+**독특한 리셋 방식**: `SceneManager.LoadScene()`으로 씬 전체를 다시 로드하는 방식 사용
+- 장점: 모든 상태가 완전히 초기화됨
+- 단점: 느리고 비효율적 (실전에서는 권장하지 않음)
+
+### (3) `Scripts/BasicSensorComponent.cs` — 커스텀 센서
+
+```csharp
+public class BasicSensor : SensorBase
+{
+    public override void WriteObservation(float[] output)
+    {
+        Array.Clear(output, 0, output.Length);
+        output[basicController.position] = 1;  // 20차원 원-핫 벡터
+    }
+}
+```
+
+| 항목 | 설정값 |
+|------|--------|
+| 센서 타입 | `SensorBase` 직접 상속 |
+| 관찰 차원 | 20 (0~20 위치를 원-핫 인코딩) |
+| 특징 | Agent의 `CollectObservations()`가 아닌 별도 컴포넌트로 분리 |
+
+### (4) `Scripts/BasicActuatorComponent.cs` — 커스텀 액추에이터
+
+```csharp
+ActionSpec m_ActionSpec = ActionSpec.MakeDiscrete(3);  // 3개 이산 액션
+
+public void OnActionReceived(ActionBuffers actionBuffers)
+{
+    var movement = actionBuffers.DiscreteActions[0];
+    var direction = 0;
+    switch (movement) { case 1: direction = -1; break; case 2: direction = 1; break; }
+    basicController.MoveDirection(direction);
+}
+```
+
+| 항목 | 설정값 |
+|------|--------|
+| 액추에이터 타입 | `IActuator` 직접 구현 |
+| 액션 공간 | 이산 3개 (정지/왼쪽/오른쪽) |
+| Observer | `Heuristic()`에서 키보드 입력 처리 |
+
+### (5) `Prefabs/Basic.prefab` — 에이전트 프리팹
+
+**프리팹 구조**:
+```
+Basic.prefab
+└── Basic
+    ├── Transform
+    ├── Agent (ML-Agents 컴포넌트)
+    ├── BasicController (스크립트)
+    ├── BasicSensorComponent (커스텀 센서)
+    ├── BasicActuatorComponent (커스텀 액추에이터)
+    ├── Behavior Parameters
+    │   ├── Behavior Name: "Basic"
+    │   ├── Vector Obs: None (SensorComponent가 대체)
+    │   └── Discrete Actions: 3
+    └── Decision Requester
+        └── Decision Period: 1
+```
+
+**Decision Requester**가 `Agent.RequestDecision()`을 자동 호출하여,
+BasicController가 직접 `RequestDecision()`을 호출하지 않아도 됩니다.
+(실제 BasicController는 자체 타이머로 호출하지만, Decision Requester도 함께 존재)
+
+### (6) `TFModels/Basic.onnx` — 사전 학습 모델
+
+| 항목 | 설명 |
+|------|------|
+| 입력 | 20차원 원-핫 벡터 |
+| 출력 | 3개 이산 액션 확률 |
+| 예상 성능 | Mean Reward: ~0.35 (빠르게 수렴) |
+| 네트워크 | 2층 × 128유닛 MLP |
+
+### (7) `Demos/ExpertBasic.demo` — 전문가 데모
+
+사람이 Heuristic 모드로 플레이한 기록입니다. Behavioral Cloning(BC) 또는
+GAIL(Generative Adversarial Imitation Learning) 학습에 사용할 수 있습니다.
+
+### (8) `.meta` 파일 — Unity 메타데이터
+
+모든 `.meta` 파일은 Unity가 각 에셋을 식별하고 관리하기 위한 GUID를 포함합니다.
+
+| `.meta` 타입 | 용도 |
+|-------------|------|
+| 스크립트 `.cs.meta` | `MonoImporter`로 스크립트 GUID 관리 |
+| 씬 `.unity.meta` | `DefaultImporter`로 씬 GUID 관리 |
+| 프리팹 `.prefab.meta` | `NativeFormatImporter`로 프리팹 GUID 관리 |
+| ONNX `.onnx.meta` | `ScriptedImporter`로 ONNX 임포트 설정 |
+| 데모 `.demo.meta` | `ScriptedImporter`로 데모 임포트 설정 |
+| 폴더 `.meta` | 폴더 구조 GUID (자동 생성) |
 
 ---
 

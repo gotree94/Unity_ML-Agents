@@ -363,25 +363,191 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Soccer/
 ├── Scenes/
-│   └── Soccer.unity
+│   ├── SoccerTwos.unity                       # (1) 2vs2 씬
+│   ├── SoccerOneVsOne.unity                   # (2) 1vs1 씬
+│   └── Soccer/                                # (3) 라이트맵 데이터
+│       └── LightingData.asset
+│
 ├── Scripts/
-│   ├── AgentSoccer.cs               # 축구 에이전트
-│   ├── SoccerEnvController.cs        # 경기장 관리
-│   ├── SoccerBallController.cs       # 골 감지
-│   └── SoccerSettings.cs             # 설정
+│   ├── SoccerPlayerAgent.cs                   # (4) 공통 Agent
+│   ├── SoccerBallController.cs                # (5) 공 제어
+│   ├── SoccerEnvController.cs                 # (6) 환경/라운드 관리
+│   ├── AgentSoccer.cs                         # (7) 팀/포지션 설정
+│   └── SoccerSettings.cs                      # (8) 환경 설정
+│
 ├── Prefabs/
-│   ├── Agents/
-│   └── SoccerField.prefab
+│   ├── Player.prefab                          # (9) 선수 프리팹
+│   ├── Ball.prefab                            # (10) 공 프리팹
+│   └── SoccerField.prefab                     # (11) 경기장 프리팹
+│
 ├── TFModels/
-│   └── Soccer.onnx
+│   ├── SoccerTwos.onnx                        # (12) 2vs2 ONNX
+│   └── SoccerOneVsOne.onnx                    # (13) 1vs1 ONNX
+│
 └── Demos/
-    └── ExpertSoccer.demo
+    └── ExpertSoccer.demo                      # (14) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/SoccerTwos.unity` — 2vs2 씬
+
+**씬 계층 구조**:
+```
+SoccerTwos.unity
+├── Main Camera × 4 (각 에이전트 전용)
+├── SoccerSettings
+├── SoccerEnvController (환경 컨트롤러)
+├── SoccerField (SoccerField.prefab)
+│   ├── Ball (Ball.prefab)
+│   ├── GoalLineL / GoalLineR (골라인)
+│   ├── StrikerL / StrikerR (공격수 Player.prefab × 2)
+│   └── GoalkeeperL / GoalkeeperR (골키퍼 Player.prefab × 2)
+├── Academy (MA-POCA 그룹)
+└── EventSystem
+```
+
+**MA-POCA 멀티 에이전트**: 4명의 에이전트(공격수 2 + 골키퍼 2)가
+2개의 SimpleMultiAgentGroup(팀)으로 나뉘어 경쟁합니다.
+
+### (2) `Scenes/SoccerOneVsOne.unity` — 1vs1 씬
+
+SoccerTwos와 동일하나 선수가 각 팀 1명씩만 있습니다.
+(Striker + Goalkeeper 각 1명 = 총 2명)
+
+### (3) `Scenes/Soccer/` — 라이트맵
+
+### (4) `Scripts/SoccerPlayerAgent.cs` — 공통 Agent
+
+| 기능 | 설명 |
+|------|------|
+| 액션 | 이산 8개 (앞/뒤/좌/우/회전 + 정지) |
+| 관찰 | RayPerception 6개 광선 (3개 방향 × 2 레이) |
+| 보상 | 골: +1 (팀 전체), 실점: -1 (팀 전체) |
+| **팀 인식** | 자가 관찰에 팀 ID 포함 → 적/아군 구분 학습 |
+
+```csharp
+public override void CollectObservations(VectorSensor sensor)
+{
+    // 팀 인식: 자신의 팀을 1로, 상대 팀을 -1로 인코딩
+    sensor.AddObservation(m_Team == Team.Blue ? 1 : -1);
+}
+```
+
+### (5) `Scripts/SoccerBallController.cs` — 공 제어
+
+```csharp
+public class SoccerBallController : MonoBehaviour
+{
+    void OnCollisionEnter(Collision col)
+    {
+        if (col.gameObject.CompareTag("goalL"))
+        {
+            envController.GoalTouched(Team.Blue);  // 파란팀 골
+        }
+        else if (col.gameObject.CompareTag("goalR"))
+        {
+            envController.GoalTouched(Team.Purple);  // 보라팀 골
+        }
+    }
+}
+```
+
+- 공이 골라인에 닿으면 `SoccerEnvController.GoalTouched()` 호출
+- 공 리셋 (중앙으로)
+- 골 상황 초기화
+
+### (6) `Scripts/SoccerEnvController.cs` — 환경/라운드 관리
+
+```csharp
+public class SoccerEnvController : MonoBehaviour
+{
+    public SimpleMultiAgentGroup blueTeam;
+    public SimpleMultiAgentGroup purpleTeam;
+    
+    public void GoalTouched(Team scoredTeam)
+    {
+        blueTeam.AddGroupReward(scoredTeam == Team.Blue ? 1f : -1f);
+        purpleTeam.AddGroupReward(scoredTeam == Team.Purple ? 1f : -1f);
+        
+        if (++round >= maxRound)
+        {
+            blueTeam.EndGroupEpisode();
+            purpleTeam.EndGroupEpisode();
+        }
+        ResetScene();
+    }
+}
+```
+
+### (7) `Scripts/AgentSoccer.cs` — 팀/포지션 설정
+
+```csharp
+public enum Team { Blue, Purple }
+public enum Position { Striker, Goalkeeper }
+
+public class AgentSoccer : MonoBehaviour
+{
+    public Team team;
+    public Position position;
+    public float punchForce = 5f;
+    
+    public override void Heuristic(float[] actionsOut)
+    {
+        // 키보드 입력으로 선수 조작
+    }
+}
+```
+
+### (8) `Scripts/SoccerSettings.cs` — 환경 설정
+
+### (9) `Prefabs/Player.prefab` — 선수 프리팹
+
+```
+Player.prefab
+├── Body (CapsuleCollider + Rigidbody)
+├── AgentSoccer (팀/포지션 할당)
+├── SoccerPlayerAgent (Agent)
+├── Behavior Parameters
+├── Decision Requester
+└── SoccerPlayerTarget (시각적 방향 표시기)
+```
+
+### (10) `Prefabs/Ball.prefab` — 공 프리팹
+
+공 (Sphere) + Rigidbody + SoccerBallController
+
+### (11) `Prefabs/SoccerField.prefab` — 경기장 프리팹
+
+```
+SoccerField.prefab
+├── Field (평면 경기장)
+├── GoalLineL (왼쪽 골라인, tag=goalL)
+├── GoalLineR (오른쪽 골라인, tag=goalR)
+├── Walls (4면 경계)
+└── RestartPositions (리셋 위치 마커)
+```
+
+### (12) `TFModels/SoccerTwos.onnx` — 2vs2 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | MA-POCA |
+| 에이전트 | 4명 (2팀 × 2명) |
+
+### (13) `TFModels/SoccerOneVsOne.onnx` — 1vs1 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | MA-POCA |
+| 에이전트 | 2명 (1vs1) |
+
+### (14) `Demos/ExpertSoccer.demo` — 전문가 데모
 
 ---
 

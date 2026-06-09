@@ -377,24 +377,178 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 DungeonEscape/
 ├── Scenes/
-│   └── DungeonEscape.unity
+│   └── DungeonEscape.unity                      # (1) 유일한 씬
+│
 ├── Scripts/
-│   ├── PushAgentEscape.cs            # 메인 에이전트
-│   ├── DungeonEscapeEnvController.cs # 환경 관리자
-│   └── SimpleNPC.cs                  # 드래곤 NPC AI
+│   ├── PushAgentEscape.cs                        # (2) 메인 에이전트
+│   ├── DungeonEscapeEnvController.cs             # (3) 환경 관리자
+│   └── SimpleNPC.cs                              # (4) 드래곤 NPC AI
+│
 ├── Prefabs/
-│   ├── DungeonEscapeAgent.prefab
-│   └── DungeonEscapePlatform.prefab
+│   ├── DungeonEscapeAgent.prefab                 # (5) 에이전트 프리팹
+│   └── DungeonEscapePlatform.prefab              # (6) 던전 플랫폼 프리팹
+│
 ├── TFModels/
-│   └── DungeonEscape.onnx
+│   └── DungeonEscape.onnx                        # (7) 사전 학습 ONNX
+│
 └── Demos/
-    └── ExpertDungeonEscape.demo
+    └── ExpertDungeonEscape.demo                  # (8) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/DungeonEscape.unity` — 유일한 씬
+
+**씬 계층 구조**:
+```
+DungeonEscape.unity
+├── Main Camera
+├── DungeonEscapeEnvController (환경 컨트롤러)
+├── Platform (PushBlockSettings + DungeonEscapePlatform.prefab)
+│   ├── PushAgentEscape × N (N명의 에이전트)
+│   ├── Dragon (SimpleNPC)
+│   ├── Key
+│   ├── Locked Door (tag=lock)
+│   ├── Portal (tag=portal)
+│   ├── Tombstone
+│   └── Walls/Floor
+├── Academy (자동 생성, MA-POCA 그룹)
+└── EventSystem
+```
+
+**협력 멀티 에이전트 환경**:
+- N명의 에이전트가 협력하여 던전 탈출
+- PushBlock 계열(이산 7개 액션)과 같은 이동 체계 사용
+
+### (2) `Scripts/PushAgentEscape.cs` — 메인 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | **1차원** (키 보유 여부 boolean) |
+| 액션 | 이산 7개 (정지/전진/후진/좌회전/우회전/좌측/우측) |
+| 보상 | 개별 보상 없음 — EnvController가 그룹 보상 처리 |
+
+```csharp
+public override void CollectObservations(VectorSensor sensor)
+{
+    sensor.AddObservation(IHaveAKey);  // 단 1차원 관찰
+}
+```
+
+**상호작용 처리**:
+| 태그 | 충돌 시 | 결과 |
+|------|--------|------|
+| `"lock"` | 키 보유 중 | `UnlockDoor()` → 문 열림 |
+| `"dragon"` | 드래곤과 충돌 | 사망 처리, 비석 생성, 키 드롭 |
+| `"portal"` | 포탈 접촉 | 플레이어 제거 (탈출) |
+| `"key"` | 트리거 | 키 획득 (`IHaveAKey = true`) |
+
+### (3) `Scripts/DungeonEscapeEnvController.cs` — 환경 관리자
+
+**SimpleMultiAgentGroup**을 사용한 협력형 환경 컨트롤러입니다.
+
+```csharp
+public class DungeonEscapeEnvController : MonoBehaviour
+{
+    public List<PlayerInfo> AgentsList;
+    public List<DragonInfo> DragonsList;
+    public GameObject Key;
+    public GameObject Tombstone;
+
+    private SimpleMultiAgentGroup m_AgentGroup;
+}
+```
+
+| 메서드 | 역할 |
+|--------|------|
+| `Start()` | 에이전트 그룹 등록, 시작 위치 저장 |
+| `TouchedHazard()` | 포탈 진입 — 모든 에이전트가 포탈 도착 시 종료 |
+| `UnlockDoor()` | 문 열기 성공 — 그룹 보상 +1, 에피소드 종료 |
+| `KilledByBaddie()` | 드래곤 사망 — 드래곤 제거, 키 드롭, 비석 생성 |
+| `ResetScene()` | 모든 에이전트/키/드래곤 리셋, 플랫폼 회전 |
+
+**리셋 특징**:
+```csharp
+// 플랫폼 전체를 랜덤 회전 (0/90/180/270도) → 일반화 학습
+var rotation = Random.Range(0, 4);
+transform.Rotate(new Vector3(0f, rotation * 90f, 0f));
+```
+
+### (4) `Scripts/SimpleNPC.cs` — 드래곤 NPC AI
+
+규칙 기반의 간단한 적 AI입니다.
+
+```csharp
+public class SimpleNPC : MonoBehaviour
+{
+    public Transform target;     // 추적 대상 (가장 가까운 에이전트)
+    public float walkSpeed = 1;
+
+    void FixedUpdate()
+    {
+        // 항상 타겟 방향으로 이동
+        dirToGo = target.position - transform.position;
+        dirToGo.y = 0;
+        rb.rotation = Quaternion.LookRotation(dirToGo);
+        rb.MovePosition(transform.position + transform.forward * walkSpeed * Time.deltaTime);
+    }
+
+    public void SetRandomWalkSpeed()
+    {
+        walkSpeed = Random.Range(1f, 7f);  // 속도 랜덤화
+    }
+}
+```
+
+| 특징 | 설명 |
+|------|------|
+| 행동 | 가장 가까운 에이전트 추적 |
+| 속도 | 1~7 (에피소드마다 랜덤) |
+| 학습 여부 | 학습되지 않음 (규칙 기반) |
+
+### (5) `Prefabs/DungeonEscapeAgent.prefab` — 에이전트 프리팹
+
+```
+DungeonEscapeAgent.prefab
+├── PushAgentEscape (Agent)
+├── Behavior Parameters
+├── Rigidbody
+├── Collider
+└── Decision Requester
+```
+
+PushAgentBasic과 거의 동일한 구조이나 `IHaveAKey` 상태를 가짐.
+
+### (6) `Prefabs/DungeonEscapePlatform.prefab` — 던전 플랫폼 프리팹
+
+```
+DungeonEscapePlatform.prefab
+├── Ground/Floor
+├── Walls (4면 경계)
+├── Locked Door (tag=lock)
+├── Portal × 2 (tag=portal)
+├── Key (시작 시 비활성화)
+├── Tombstone (시작 시 비활성화)
+├── SpawnArea (에이전트 스폰 구역)
+└── Dragon Spawn (드래곤 스폰 구역)
+```
+
+### (7) `TFModels/DungeonEscape.onnx` — 사전 학습 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | MA-POCA |
+| 에이전트 | 4명 (협력) |
+| 보상 | 그룹 보상 (문 열기 +1) |
+| 액션 | 이산 7개 |
+| 관찰 | 1차원 (키 보유 여부) |
+
+### (8) `Demos/ExpertDungeonEscape.demo` — 전문가 데모
 
 ---
 

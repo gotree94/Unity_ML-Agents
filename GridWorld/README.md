@@ -335,29 +335,163 @@ mlagents-learn config/ppo/GridWorld.yaml --run-id=GridWorldTest1
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 GridWorld/
 ├── Scenes/
-│   ├── GridWorld.unity            # 싱글 에이전트
-│   └── GridWorldColab.unity       # 협력(co-op) 버전
+│   ├── GridWorld.unity                     # (1) 싱글 에이전트 씬
+│   ├── GridWorldColab.unity                # (2) 협력(co-op) 씬
+│   └── GridWorld/                          # (3) 라이트맵/Reflection Probe 데이터
+│       ├── LightingData.asset
+│       └── ReflectionProbe-0.exr
+│
 ├── Scripts/
-│   ├── GridAgent.cs               # 메인 에이전트
-│   ├── GridArea.cs                # 격자 환경 생성
-│   └── GridSettings.cs            # 환경 설정 (카메라)
+│   ├── GridAgent.cs                        # (4) 메인 에이전트
+│   ├── GridArea.cs                         # (5) 격자 환경 생성/리셋
+│   └── GridSettings.cs                     # (6) 환경 설정 (카메라 동기화)
+│
 ├── Prefabs/
-│   ├── Area.prefab
-│   ├── AreaColab.prefab
-│   ├── goal-ex.prefab             # 빨간색 X 목표
-│   ├── goal-plus.prefab           # 초록색 + 목표
-│   └── agentRenderTexture.renderTexture
+│   ├── Area.prefab                         # (7) 싱글 격자 영역
+│   ├── AreaColab.prefab                    # (8) 협력 격자 영역
+│   ├── goal-ex.prefab                      # (9) 빨간색 X 목표
+│   ├── goal-plus.prefab                    # (10) 초록색 + 목표
+│   └── agentRenderTexture.renderTexture    # (11) RenderTexture 에셋
+│
 ├── TFModels/
-│   ├── GridWorld.onnx
-│   └── GridWorldColab.onnx
+│   ├── GridWorld.onnx                      # (12) 싱글 에이전트 ONNX
+│   └── GridWorldColab.onnx                 # (13) 협력 에이전트 ONNX
+│
 └── Demos/
-    └── ExpertGridWorld.demo
+    └── ExpertGridWorld.demo                # (14) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/GridWorld.unity` — 싱글 에이전트 씬
+
+**씬 계층 구조**:
+```
+GridWorld.unity
+├── Main Camera
+├── GridSettings            ← GridSettings.cs (카메라 위치 조정)
+├── Area (GridWorldArea)    ← Area.prefab 인스턴스
+│   ├── GridAgent           ← GridAgent.cs (에이전트)
+│   └── Ground/Walls/목표들
+├── Academy (자동 생성)
+└── EventSystem
+```
+
+**렌더 텍스처 관찰 지원**: GridAgent에 `renderCamera`가 할당되어 있어,
+`RenderTexture`로 시각 관찰(Visual Observation) 학습이 가능합니다.
+
+### (2) `Scenes/GridWorldColab.unity` — 협력(co-op) 씬
+
+- 싱글 버전과 동일하나 `AreaColab.prefab` 사용
+- 2명의 에이전트가 협력하여 목표 찾기
+- `SimpleMultiAgentGroup` 사용
+- 학습 시 `config/poca/GridWorld.yaml` 필요 (MA-POCA 트레이너)
+
+### (3) `Scenes/GridWorld/` — 라이트맵 데이터
+
+| 파일 | 용도 |
+|------|------|
+| `LightingData.asset` | 베이크된 조명 데이터 |
+| `ReflectionProbe-0.exr` | 환경 반사 텍스처 |
+
+선베이크된 라이트맵으로 씬을 열자마자 조명이 적용됩니다.
+
+### (4) `Scripts/GridAgent.cs` — 메인 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | 목표 종류 One-Hot (2차원) + RenderTexture (선택) |
+| 액션 | 이산 5개 (정지/위/아래/왼/오른) |
+| **Action Masking** | `WriteDiscreteActionMask()`에서 벽 방향 액션 차단 |
+| 초기화 | `area.AreaReset()` 호출로 격자 재배치 |
+| 추론 타이밍 | 자체 `WaitTimeInference()`로 의사결정 간격 제어 |
+
+```csharp
+// Action Masking의 핵심 — 벽 방향으로는 이동 명령을 내려도 실행되지 않음
+if (positionX == 0) actionMask.SetActionEnabled(0, k_Left, false);
+if (positionX == maxPosition) actionMask.SetActionEnabled(0, k_Right, false);
+```
+
+### (5) `Scripts/GridArea.cs` — 격자 환경 생성
+
+**주요 역할**:
+- `AreaReset()`: 에피소드마다 에이전트와 목표들을 랜덤 위치에 재배치
+- 중복 방지를 위해 `HashSet<int>` 사용
+- `gridSize` 파라미터로 격자 크기 동적 변경 (5×5 ~ 15×15)
+- `onMaterial`/`offMaterial`: 바닥 타일의 체크무늬 렌더링
+
+**랜덤 배치 로직**:
+```csharp
+var numbers = new HashSet<int>();
+while (numbers.Count < players.Length + 1)  // +1 for agent
+    numbers.Add(Random.Range(0, gridSize * gridSize));
+// Set 결과로 position 결정 → Instantiate
+```
+
+### (6) `Scripts/GridSettings.cs` — 환경 설정
+
+`EnvironmentParameters`의 `gridSize` 콜백을 등록하여, 격자 크기가 변경될 때
+메인 카메라의 위치와 크기를 자동으로 조정합니다.
+
+```csharp
+Academy.Instance.EnvironmentParameters.RegisterCallback("gridSize", f => {
+    MainCamera.transform.position = new Vector3(-(f-1)/2f, f*1.25f, -(f-1)/2f);
+    MainCamera.orthographicSize = (f + 5f) / 2f;
+});
+```
+
+### (7) `Prefabs/Area.prefab` — 싱글 격자 영역
+
+프리팹에 포함된 오브젝트:
+- Ground (회색 체크무늬 바닥, `GridArea` 스크립트)
+- Walls (4면 경계벽, "wall" 태그)
+- GridAgent (에이전트, `GridAgent.cs`, `Behavior Parameters`)
+- AgentCamera (RenderTexture 관찰용)
+
+### (8) `Prefabs/AreaColab.prefab` — 협력 격자 영역
+
+Area.prefab과 동일하지만 GridAgent가 2개 포함되어 있습니다.
+
+### (9) `Prefabs/goal-ex.prefab` / (10) `Prefabs/goal-plus.prefab`
+
+| 프리팹 | 태그 | 색상 | 보상 | 관찰 인코딩 값 |
+|--------|------|------|------|--------------|
+| `goal-plus.prefab` | "plus" | 초록색 `+` | +1 | 0 (One-Hot 첫번째) |
+| `goal-ex.prefab` | "ex" | 빨간색 `X` | +1 | 1 (One-Hot 두번째) |
+
+두 목표는 색상과 모양만 다르고 동일한 보상 값을 가집니다.
+에이전트는 자신에게 할당된 목표를 찾아가야 하며, 잘못된 목표에 가면 -1 패널티를 받습니다.
+
+### (11) `agentRenderTexture.renderTexture` — RenderTexture 에셋
+
+시각 관찰(Visual Observation) 학습을 위한 렌더 텍스처입니다.
+GridAgent의 `renderCamera`가 이 텍스처에 씬을 렌더링하고,
+ML-Agents의 CNN이 이 이미지를 처리하여 행동을 결정합니다.
+
+**설정값**: 84×84 픽셀, 24비트 RGB (기본 CNN 입력 규격)
+
+### (12) `TFModels/GridWorld.onnx` — 싱글 에이전트 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 행동 이름 | "GridWorld" |
+| 입력 | 2차원 One-Hot + 선택적 시각 |
+| 출력 | 5개 이산 액션 확률 |
+| 특징 | Action Masking 최적화 |
+
+### (13) `TFModels/GridWorldColab.onnx` — 협력 에이전트 ONNX
+
+MA-POCA 트레이너로 학습된 모델입니다. 싱글과 달리 다른 에이전트의 행동을
+고려한 정책을 학습합니다.
+
+### (14) `Demos/ExpertGridWorld.demo` — 전문가 데모
+
+사람이 Heuristic 모드로 플레이한 기록으로, GAIL/BC 모방 학습에 사용됩니다.
 
 ---
 

@@ -312,22 +312,162 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Crawler/
 ├── Scenes/
-│   └── Crawler.unity
+│   ├── CrawlerStatic.unity                   # (1) 정적 타겟 씬 (PPO)
+│   ├── CrawlerDynamic.unity                  # (2) 동적 타겟 씬 (MA-POCA)
+│   └── Crawler/                              # (3) 라이트맵 데이터
+│       ├── LightingData.asset
+│       └── ReflectionProbe-0.exr
+│
 ├── Scripts/
-│   └── CrawlerAgent.cs            # 메인 에이전트
+│   ├── CrawlerAgent.cs                       # (4) 메인 Agent (걸음새 제어)
+│   ├── CrawlerStaticTarget.cs                # (5) 정적 타겟
+│   └── JointDriveController.cs               # (6) 관절 제어 (Walker/Worm과 공유)
+│
 ├── Prefabs/
-│   ├── Crawler.prefab
-│   └── Platform.prefab
+│   ├── Crawler.prefab                        # (7) 크롤러 로봇
+│   ├── TargetStatic.prefab                   # (8) 정적 타겟
+│   └── TargetDynamic.prefab                  # (9) 동적 타겟
+│
 ├── TFModels/
-│   └── Crawler.onnx
+│   ├── CrawlerStatic.onnx                    # (10) 정적 PPO ONNX
+│   └── CrawlerDynamic.onnx                   # (11) 동적 MA-POCA ONNX
+│
 └── Demos/
-    └── ExpertCrawler.demo
+    └── ExpertCrawler.demo                    # (12) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/CrawlerStatic.unity` — 정적 타겟 씬
+
+**씬 계층 구조**:
+```
+CrawlerStatic.unity
+├── Main Camera
+├── Environment
+│   ├── Ground
+│   └── Crawler (Crawler.prefab 인스턴스)
+│       ├ ├── CrawlerAgent (Agent)
+│       ├ ├── JointDriveController
+│       ├ ├── body/leg1/leg2/leg3/leg4 (Transform 계층)
+│       ├ └── 각 관절의 HingeJoint + CrawlerJointExtensor
+│   └── TargetStatic (TargetStatic.prefab)
+│       └── CrawlerStaticTarget.cs
+└── Academy / EventSystem
+```
+
+**관절 로봇**: 4개의 다리를 가진 곤충형 로봇으로 각 다리마다 2개의 관절이 있음.
+
+### (2) `Scenes/CrawlerDynamic.unity` — 동적 타겟 씬
+
+`Crawler` + `TargetDynamic.prefab` 사용. 타겟이 시간이 지남에 따라 이동.
+MA-POCA 학습 필요 (에이전트가 동적 타겟을 추적).
+
+### (3) `Scenes/Crawler/` — 라이트맵
+
+### (4) `Scripts/CrawlerAgent.cs` — 메인 Agent
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | 자세(관절 각도/속도), 타겟 방향, 속도 벡터 |
+| 액션 | 🟢 **연속 제어** — 각 관절의 타겟 회전 각도 설정 |
+| 보상 | 타겟 방향 속도 비례 `+`, 회전 속도 패널티 `-`, 높이 패널티 `-` |
+
+```csharp
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    // 8개 연속 액션: 각 관절의 타겟 각도 (-1~1)
+    for (var i = 0; i < 8; i++)
+    {
+        // CrawlerJointExtensor의 targetRotation 설정
+        jointExtensors[i].SetTargetRotation(actionBuffers.ContinuousActions[i]);
+    }
+}
+```
+
+**보상 함수**:
+```
+r = velocityInTargetDir
+  - 0.005f * 회전_변화량         // 회전 안정성 패널티
+  - 0.05f * (높이 - 1.3f)^2     // 적정 높이 유지
+```
+
+### (5) `Scripts/CrawlerStaticTarget.cs` — 정적 타겟
+
+타겟이 범위 내에서 랜덤 위치에 배치됩니다. 도달 시 새로운 위치로 리셋.
+
+### (6) `Scripts/JointDriveController.cs` — 관절 제어 (공유)
+
+Crawler/Walker/Worm 세 예제에서 공유하는 핵심 관절 제어 클래스입니다.
+
+```csharp
+public class JointDriveController : MonoBehaviour
+{
+    public class Joint
+    {
+        public HingeJoint hingeJoint;          // 실제 물리 관절
+        public JointDrive jointDrive;          // Spring/Damper/ForceLimit
+        public ConfigurableJoint configJoint;  // (대체)
+        public float maxJointForce;            // 최대 관절 힘
+        public float targetRotation;           // 목표 회전각
+    }
+    
+    public Dictionary<Transform, Joint> jointDict = new();
+    public float maxJointSpring;               // 최대 스프링 강도
+    public Joint GetJoint(Transform t) => jointDict[t];
+}
+```
+
+### (7) `Prefabs/Crawler.prefab` — 크롤러 로봇
+
+**프리팹 계층**:
+```
+Crawler
+├── body (Rigidbody)
+│   ├── leg1upper (HingeJoint) → leg1lower (HingeJoint)
+│   ├── leg2upper (HingeJoint) → leg2lower (HingeJoint)
+│   ├── leg3upper (HingeJoint) → leg3lower (HingeJoint)
+│   └── leg4upper (HingeJoint) → leg4lower (HingeJoint)
+├── CrawlerAgent.cs
+├── JointDriveController.cs
+└── 각 CrawlerJointExtensor.cs (관절마다 부착)
+```
+
+- `body` 스피어 콜라이더
+- 각 `legXupper`: 상박 (하나의 HingeJoint)
+- 각 `legXlower`: 하박 (하나의 HingeJoint)
+- 각 관절마다 `CrawlerJointExtensor`가 부착되어
+  `JointDriveController.Joint`와 바인딩 됨
+
+### (8) `Prefabs/TargetStatic.prefab` — 정적 타겟
+
+정적 위치에 배치되는 빨간색 구체. `CrawlerStaticTarget` 스크립트 포함.
+
+### (9) `Prefabs/TargetDynamic.prefab` — 동적 타겟
+
+이동하는 타겟. `TargetController` 스크립트 포함.
+
+### (10) `TFModels/CrawlerStatic.onnx` — 정적 PPO ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 액션 | 8차원 연속 (각 관절 타겟 각도) |
+| 관찰 | 47차원 (관절 상태 + 타겟 방향 + 속도) |
+
+### (11) `TFModels/CrawlerDynamic.onnx` — 동적 MA-POCA ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | MA-POCA (동적 환경 특화) |
+| 타겟 추적 | 예측 기반 이동 |
+
+### (12) `Demos/ExpertCrawler.demo` — 전문가 데모
 
 ---
 

@@ -271,20 +271,142 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Worm/
 ├── Scenes/
-│   └── Worm.unity
+│   ├── WormStatic.unity                       # (1) 정적 타겟 씬 (PPO)
+│   ├── WormDynamic.unity                      # (2) 동적 타겟 씬 (MA-POCA)
+│   └── Worm/                                  # (3) 라이트맵 데이터
+│       └── LightingData.asset
+│
 ├── Scripts/
-│   └── WormAgent.cs               # 메인 에이전트
+│   ├── WormAgent.cs                            # (4) 메인 Agent (기어가기)
+│   ├── WormDynamicTarget.cs                    # (5) 동적 타겟
+│   └── JointDriveController.cs                 # (6) 관절 제어 (Crawler/Walker와 공유)
+│
 ├── Prefabs/
-│   ├── PlatformWorm.prefab
-│   └── Worm.prefab
+│   ├── Worm.prefab                             # (7) 벌레(뱀형) 로봇
+│   ├── TargetStatic.prefab                     # (8) 정적 타겟
+│   └── TargetDynamic.prefab                    # (9) 동적 타겟
+│
 ├── TFModels/
-│   └── Worm.onnx
+│   ├── WormStatic.onnx                         # (10) 정적 PPO ONNX
+│   └── WormDynamic.onnx                        # (11) 동적 MA-POCA ONNX
+│
+└── Demos/
+    └── ExpertWorm.demo                         # (12) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/WormStatic.unity` — 정적 타겟 씬 (PPO)
+
+**씬 계층 구조**:
+```
+WormStatic.unity
+├── Main Camera
+├── Environment
+│   ├── Ground
+│   └── Worm (Worm.prefab 인스턴스)
+│       ├ ├── WormAgent (Agent)
+│       ├ ├── JointDriveController
+│       ├ ├── Body1 → Body2 → Body3 → ... → Body12 (12개 분절)
+│       └ └── 각 분절 사이 ConfigurableJoint (총 11개)
+│   └── TargetStatic (TargetStatic.prefab)
+│       └── WormDynamicTarget.cs
+└── Academy / EventSystem
+```
+
+### (2) `Scenes/WormDynamic.unity` — 동적 타겟 씬 (MA-POCA)
+
+동적 타겟이 이동하는 환경. MA-POCA 학습 필요.
+
+### (3) `Scenes/Worm/` — 라이트맵
+
+### (4) `Scripts/WormAgent.cs` — 메인 Agent (기어가기)
+
+뱀/벌레 형태의 **파동 운동(serpentine locomotion)** 을 학습합니다.
+
+| 항목 | 설정 |
+|------|------|
+| 액션 | 🟢 **11차원 연속** (분절 간 상대 각도) |
+| 관찰 | 72차원 (각 분절 각도/속도, 타겟 방향/거리, 자이로) |
+| 보상 | 타겟 방향 속도 + 생존 보너스 - 회전 패널티 |
+
+```csharp
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    // 11개 분절 관절 각각에 타겟 각도 적용 → 사인파 보행 생성
+    for (var i = 0; i < 11; i++)
+    {
+        jointExtensors[i].SetTargetRotation(
+            actionBuffers.ContinuousActions[i] * jointExtensors[i].maxJointRotation);
+    }
+}
+```
+
+**보상 구조**:
+```
+r = 벨로시티_인_타겟_방향 * 2
+  + 0.01f                     // 생존 보너스
+  - 0.01f * 회전_변화량        // 안정성
+  - 0.001f * Σ|모터_힘|        // 효율
+```
+
+### (5) `Scripts/WormDynamicTarget.cs` — 동적 타겟
+
+Worm 환경의 동적 타겟 제어 스크립트.
+
+### (6) `Scripts/JointDriveController.cs` — 관절 제어 (공유)
+
+Crawler/Walker/Worm이 완전히 동일한 `JointDriveController`를 공유합니다.
+단, Worm은 HingeJoint 대신 **ConfigurableJoint**를 사용한다는 차이가 있습니다.
+
+```csharp
+// Worm 전용: ConfigurableJoint 사용
+// Crawler/Walker: HingeJoint 사용
+```
+
+### (7) `Prefabs/Worm.prefab` — 벌레(뱀형) 로봇
+
+**프리팹 계층 (12분절 체인)**:
+```
+Worm
+├── Body1 (Rigidbody + CapsuleCollider)
+│   ├── Body2 (ConfigurableJoint)  → Body3 → Body4 → ...
+│   │   └── Body5 → ... → Body12
+│   └── ...
+├── WormAgent.cs
+├── JointDriveController.cs
+└── 각 WormJointExtensor.cs (분절 간 관절마다)
+```
+
+| 분절 | 용도 |
+|------|------|
+| Body1-12 | 12개의 캡슐형 바디 |
+| Body1 (머리) | 타겟 방향 감지 센서 탑재 |
+| Body12 (꼬리) | 마지막 분절 |
+
+**ConfigurableJoint**: Worm은 각 분절을 3축 회전이 가능한 `ConfigurableJoint`로 연결.
+Crawler/Walker의 HingeJoint보다 자유도가 높아 더 유연한 움직임 가능.
+
+### (8) `Prefabs/TargetStatic.prefab` — 정적 타겟
+
+### (9) `Prefabs/TargetDynamic.prefab` — 동적 타겟
+
+### (10) `TFModels/WormStatic.onnx` — 정적 PPO ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 액션 | 11차원 연속 (분절 각도) |
+| 관찰 | 72차원 |
+
+### (11) `TFModels/WormDynamic.onnx` — 동적 MA-POCA ONNX
+
+### (12) `Demos/ExpertWorm.demo` — 전문가 데모
 
 ---
 

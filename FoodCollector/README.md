@@ -367,25 +367,167 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 FoodCollector/
 ├── Scenes/
-│   ├── FoodCollector.unity
-│   └── VisualFoodCollector.unity
+│   ├── FoodCollector.unity                    # (1) 기본 씬
+│   └── FoodCollectorVisual.unity              # (2) 시각 관찰 씬
+│
 ├── Scripts/
-│   ├── FoodCollectorAgent.cs        # 메인 에이전트
-│   ├── FoodCollectorArea.cs         # 영역 관리
-│   ├── FoodCollectorSettings.cs     # 전역 설정
-│   └── FoodLogic.cs                 # 음식 로직
+│   ├── FoodCollectorAgent.cs                  # (3) 메인 에이전트
+│   ├── FoodCollectorArea.cs                   # (4) 환경 생성
+│   ├── FoodCollectorSettings.cs               # (5) 설정 (셀프 플레이/그냥 학습)
+│   └── FoodLogic.cs                           # (6) 음식 로직
+│
 ├── Prefabs/
-│   └── FoodCollectorArea.prefab
+│   ├── FoodCollectorArea.prefab               # (7) 기본 영역 프리팹
+│   └── FoodCollectorVisualArea.prefab         # (8) 시각 영역 프리팹
+│
 ├── TFModels/
-│   └── FoodCollector.onnx
+│   ├── FoodCollector.onnx                     # (9) 기본 ONNX
+│   └── FoodCollectorVisual.onnx               # (10) 시각 ONNX
+│
 └── Demos/
-    └── ExpertFoodCollector.demo
+    └── ExpertFoodCollector.demo               # (11) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/FoodCollector.unity` — 기본 씬
+
+**씬 계층 구조**:
+```
+FoodCollector.unity
+├── Main Camera
+├── FoodCollectorSettings (셀프 플레이 설정)
+├── Academy (자동)
+├── Area (FoodCollectorArea.prefab)
+│   ├── FoodCollectorArea
+│   ├── Agent (FoodCollectorAgent)
+│   ├── foods (4개)
+│   ├── badFoods (4개)
+│   ├── pitches (2개)
+│   └── walls/floor
+└── EventSystem
+```
+
+**멀티 에이전트 경쟁 환경**:
+- 여러 에이전트(기본 4마리)가 동시에 같은 필드에서 경쟁
+- Agent는 자신의 팀과 상대 팀으로 구분 가능 (셀프 플레이)
+
+### (2) `Scenes/FoodCollectorVisual.unity` — 시각 관찰 씬
+
+기본과 동일하나 `CameraSensorComponent`로 시각 관찰 지원.
+
+### (3) `Scripts/FoodCollectorAgent.cs` — 메인 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 관찰 | RayPerception 12개 광선 + 팀 정보 |
+| 액션 | 이산 7개 (방향 4 + 회전 2 + 정지) |
+| 보상 시스템 | 좋은 음식 +, 나쁜 음식 -, 속도 페널티 |
+
+```csharp
+public override void OnActionReceived(ActionBuffers actionBuffers)
+{
+    // 이동 적용
+    var forwardAxis = discreteActions[0];
+    var turnAxis = discreteActions[1];
+    
+    // 보상: 좋은 음식 +1, 나쁜 음식 -1
+    // 스텝 페널티: -0.0005
+    
+    // 셀프 플레이 상태 전환
+    m_IsPlayer1 = m_Settings.resetPlayer1;
+    
+    // 관찰 팀 정보
+    // selfObservation[0] = isPlayer1 ? 1 : -1;
+}
+```
+
+**독특한 에피소드 관리**: FoodCollector는 개별 Agent가 아닌
+`FoodCollectorArea`가 전체 에피소드를 관리합니다.
+
+### (4) `Scripts/FoodCollectorArea.cs` — 환경 생성
+
+| 역할 | 설명 |
+|------|------|
+| 음식 스폰 | 4개 goodFood + 4개 badFood를 랜덤 위치에 배치 |
+| 리셋 | 모든 에이전트와 음식을 원래 상태로 리셋 |
+| 에피소드 관리 | 특정 조건(음식 소진)에서 EndEpisode |
+
+```csharp
+public void ResetFood()
+{
+    foreach (var food in foodObjects)
+    {
+        food.transform.position = GetRandomPos();
+        food.SetActive(true);
+    }
+}
+
+public void FoodEaten(FoodLogic food)
+{
+    food.SetActive(false);
+    if (AllFoodEaten())
+        Agent.EndEpisode();
+}
+```
+
+### (5) `Scripts/FoodCollectorSettings.cs` — 설정
+
+| 파라미터 | 설명 |
+|---------|------|
+| `agentRotationSpeed` | 에이전트 회전 속도 |
+| `spawnAreaMultiplier` | 스폰 범위 |
+| `resetPlayer1` | 셀프 플레이 전환 플래그 |
+| `agentMaterial` | 팀별 재질 설정 |
+| `Bad Food Score` | 나쁜 음식 점수 |
+
+### (6) `Scripts/FoodLogic.cs` — 음식 로직
+
+```csharp
+public class FoodLogic : MonoBehaviour
+{
+    public enum FoodType { Good, Bad }
+    public FoodType foodType;
+    public float respawnTime = 10f;
+    
+    void OnTriggerEnter(Collider col)
+    {
+        if (col.CompareTag("agent"))
+        {
+            // 먹힘 처리
+            OnEaten();
+        }
+    }
+}
+```
+
+- `GoodFood`: 초록색, +1 보상
+- `BadFood`: 빨간색, -1 패널티 (시간이 지나면 나빠짐)
+
+### (7) `Prefabs/FoodCollectorArea.prefab` — 기본 영역
+
+### (8) `Prefabs/FoodCollectorVisualArea.prefab` — 시각 영역
+
+기본 + CameraSensorComponent
+
+### (9) `TFModels/FoodCollector.onnx` — 기본 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 셀프 플레이 | 지원 |
+| 학습기 | PPO |
+| 액션 | 7개 이산 |
+
+### (10) `TFModels/FoodCollectorVisual.onnx` — 시각 ONNX
+
+CNN 시각 입력 기반.
+
+### (11) `Demos/ExpertFoodCollector.demo` — 전문가 데모
 
 ---
 

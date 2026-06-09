@@ -393,31 +393,211 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 PushBlock/
 ├── Scenes/
-│   ├── PushBlock.unity              # Single-Agent
-│   └── PushBlockCollab.unity        # Collaborative
+│   ├── PushBlock.unity                     # (1) Single-Agent 씬
+│   └── PushBlockCollab.unity               # (2) Collaborative 씬
+│
 ├── Scripts/
-│   ├── PushAgentBasic.cs            # Single-Agent
-│   ├── PushAgentCollab.cs           # Collaborative Agent
-│   ├── PushBlockEnvController.cs    # 협력 환경 컨트롤러
-│   ├── PushBlockSettings.cs         # 설정
-│   ├── GoalDetect.cs                # 블록-골 충돌 감지 (Basic)
-│   └── GoalDetectTrigger.cs         # 범용 트리거 감지 (Collab)
+│   ├── PushAgentBasic.cs                   # (3) 싱글 에이전트
+│   ├── PushAgentCollab.cs                  # (4) 협력 에이전트
+│   ├── PushBlockEnvController.cs           # (5) 협력 환경 컨트롤러
+│   ├── PushBlockSettings.cs                # (6) 공통 설정
+│   ├── GoalDetect.cs                       # (7) 충돌 감지 (Basic)
+│   └── GoalDetectTrigger.cs                # (8) 범용 트리거 (Collab)
+│
 ├── Prefabs/
-│   ├── PushBlockArea.prefab
-│   └── PushBlockCollabAreaGrid.prefab
+│   ├── PushBlockArea.prefab                # (9) 싱글 영역 프리팹
+│   └── PushBlockCollabAreaGrid.prefab      # (10) 협력 영역 프리팹
+│
 ├── Meshes/
-│   └── PushBlockCourt.fbx
+│   └── PushBlockCourt.fbx                  # (11) 경기장 3D 메시
+│
 ├── TFModels/
-│   ├── PushBlock.onnx
-│   └── PushBlockCollab.onnx
+│   ├── PushBlock.onnx                      # (12) 싱글 ONNX
+│   └── PushBlockCollab.onnx                # (13) 협력 ONNX
+│
 └── Demos/
-    └── ExpertPushBlock.demo
+    └── ExpertPushBlock.demo                # (14) 전문가 데모
 ```
+
+---
+
+### (1) `Scenes/PushBlock.unity` — Single-Agent 씬
+
+**씬 계층 구조**:
+```
+PushBlock.unity
+├── Main Camera
+├── PushBlockSettings    ← PushBlockSettings.cs (마찰력, 블록 속성)
+├── Area (PushBlockArea) ← PushBlockArea.prefab
+│   ├── PushAgentBasic   ← PushAgentBasic.cs
+│   ├── Block            ← 주황색 블록 (Rigidbody + GoalDetect)
+│   ├── Goal             ← 초록색 목표 지점
+│   ├── Wall/Floor       ← 경기장
+│   └── Wall/Floor ...
+└── EventSystem
+```
+
+**PushBlockSettings**는 `EnvironmentParameters` 콜백을 등록하여
+Curriculum Learning 시 마찰력, 블록 크기, 블록 항력을 동적으로 변경합니다.
+
+### (2) `Scenes/PushBlockCollab.unity` — Collaborative 씬
+
+- 싱글 버전과 동일하나 `PushBlockCollabAreaGrid.prefab` 사용
+- 2명의 에이전트 + 2개의 블록 + 2개의 골
+- `PushBlockEnvController`가 전체 흐름 제어
+- 학습 시 `config/poca/PushBlock.yaml` 필요
+
+### (3) `Scripts/PushAgentBasic.cs` — 싱글 에이전트
+
+| 기능 | 설명 |
+|------|------|
+| 액션 | 이산 7개 (정지/전진/후진/좌회전/우회전/좌측/우측) |
+| 보상 | 매 스텝 `-1/MaxStep`, 목표 달성 `+5` |
+| 스폰 | `Physics.CheckBox`로 충돌 없는 위치 찾기 |
+| Curriculum | `SetGroundMaterialFriction()`, `SetBlockProperties()` |
+
+```csharp
+// 7개 이산 액션 매핑
+case 1: dirToGo = transform.forward * 1f;          // 전진
+case 2: dirToGo = transform.forward * -1f;         // 후진
+case 3: rotateDir = transform.up * 1f;             // 우회전
+case 4: rotateDir = transform.up * -1f;            // 좌회전
+case 5: dirToGo = transform.right * -0.75f;        // 좌측
+case 6: dirToGo = transform.right * 0.75f;         // 우측
+```
+
+### (4) `Scripts/PushAgentCollab.cs` — 협력 에이전트
+
+```csharp
+public class PushAgentCollab : Agent
+{
+    public override void OnActionReceived(ActionBuffers actionBuffers)
+    {
+        MoveAgent(actionBuffers.DiscreteActions);
+        // 개별 보상 없음 — EnvController가 그룹 보상 처리
+    }
+}
+```
+
+- PushAgentBasic과 달리 자체 보상 로직 없음
+- `PushBlockEnvController`의 `SimpleMultiAgentGroup`이 보상 관리
+- 행동만 수행하고 평가는 시스템에 위임
+
+### (5) `Scripts/PushBlockEnvController.cs` — 협력 환경 컨트롤러
+
+**SimpleMultiAgentGroup을 사용한 그룹 보상**:
+```csharp
+m_AgentGroup = new SimpleMultiAgentGroup();
+foreach (var item in AgentsList)
+    m_AgentGroup.RegisterAgent(item.Agent);
+
+// 모든 블록이 목표 도달 시 그룹 보상 + 에피소드 종료
+public void ScoredAGoal(Collider col, float score)
+{
+    m_NumberOfRemainingBlocks--;
+    m_AgentGroup.AddGroupReward(score);
+    if (m_NumberOfRemainingBlocks == 0)
+    {
+        m_AgentGroup.EndGroupEpisode();
+        ResetScene();
+    }
+}
+```
+
+### (6) `Scripts/PushBlockSettings.cs` — 공통 설정
+
+| 필드 | 기본값 | 설명 |
+|------|--------|------|
+| `agentRunSpeed` | Inspector 지정 | 에이전트 이동 속도 |
+| `agentRotationSpeed` | Inspector 지정 | 에이전트 회전 속도 |
+| `spawnAreaMarginMultiplier` | 0.9 | 스폰 범위 마진 |
+| `goalScoredMaterial` | Inspector 지정 | 성공 시 바닥 재질 |
+| `failMaterial` | Inspector 지정 | 실패 시 바닥 재질 |
+
+### (7) `Scripts/GoalDetect.cs` — 충돌 감지 (Basic)
+
+블록에 부착되어 블록이 Goal에 닿았는지 감지합니다.
+
+```csharp
+void OnCollisionEnter(Collision col)
+{
+    if (col.gameObject.CompareTag("goal"))
+        agent.ScoredAGoal();   // PushAgentBasic.ScoredAGoal() 호출
+}
+```
+
+### (8) `Scripts/GoalDetectTrigger.cs` — 범용 트리거 (Collab)
+
+**UnityEvent 기반의 유연한 설계**:
+```csharp
+[System.Serializable]
+public class TriggerEvent : UnityEvent<Collider, float> { }
+
+public string tagToDetect = "goal";
+public float GoalValue = 1;
+public TriggerEvent onTriggerEnterEvent = new TriggerEvent();
+
+void OnTriggerEnter(Collider col)
+{
+    if (col.CompareTag(tagToDetect))
+        onTriggerEnterEvent.Invoke(col, GoalValue);
+}
+```
+
+Inspector에서 `onTriggerEnterEvent`에 `PushBlockEnvController.ScoredAGoal`을
+직접 연결할 수 있습니다. 이로 인해 GoalDetectTrigger 자체는 어떤 스크립트에도
+의존하지 않는 **재사용 가능한 컴포넌트**가 됩니다.
+
+### (9) `Prefabs/PushBlockArea.prefab` — 싱글 영역
+
+프리팹 구성:
+- PushAgentBasic (Agent, Behavior Parameters)
+- Block (Rigidbody, GoalDetect, "block" 태그)
+- Goal ("goal" 태그, 초록색)
+- 4면 Walls + Floor
+- SpawnArea 마커
+
+### (10) `Prefabs/PushBlockCollabAreaGrid.prefab` — 협력 영역
+
+싱글 영역과 달리 다음이 포함됨:
+- PushAgentCollab × 2
+- Block × 2
+- Goal × 2
+- PushBlockEnvController
+- 격자 무늬 Floor
+
+### (11) `Meshes/PushBlockCourt.fbx` — 경기장 3D 메시
+
+FBX 포맷의 3D 모델 파일. PushBlock 경기장의 벽과 바닥 형태를 정의합니다.
+
+| FBX 항목 | 용도 |
+|---------|------|
+| Polygon Mesh | PushBlockCourt 형태 |
+| UV 데이터 | 텍스처 매핑 |
+| Transform 계층 | 벽/바닥 구조 |
+
+### (12) `TFModels/PushBlock.onnx` — 싱글 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 입력 | 7개 이산 액션 확률 |
+| 출력 | 행동 가치 |
+| 네트워크 | 2층 × 128유닛 |
+| 행동 이름 | "PushBlock" |
+
+### (13) `TFModels/PushBlockCollab.onnx` — 협력 ONNX
+
+MA-POCA로 학습된 협력 모델입니다. 다른 에이전트의 상태를 고려한 정책을 학습합니다.
+
+### (14) `Demos/ExpertPushBlock.demo` — 전문가 데모
+
+사람이 직접 조작하여 블록을 목표까지 밀어넣은 기록입니다.
+Behavioral Cloning의 Reference 전문가 궤적으로 사용됩니다.
 
 ---
 

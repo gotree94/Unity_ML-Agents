@@ -355,18 +355,109 @@ behaviors:
 
 ---
 
-## 6. 파일 구조
+## 6. 전체 파일 구조와 각 파일의 의미
 
 ```
 Sorter/
 ├── Scenes/
-│   └── Sorter.unity
+│   └── Sorter.unity                              # (1) 유일한 씬
+│
 ├── Scripts/
-│   ├── SorterAgent.cs              # 메인 에이전트
-│   └── NumberTile.cs               # 타일 상태 관리
+│   ├── SorterAgent.cs                             # (2) 메인 에이전트 (BufferSensor)
+│   └── NumberTile.cs                              # (3) 타일 상태 관리
+│
 └── TFModels/
-    └── Sorter.onnx
+    └── Sorter.onnx                                # (4) 사전 학습 ONNX
 ```
+
+---
+
+### (1) `Scenes/Sorter.unity` — 유일한 씬
+
+**씬 계층 구조**:
+```
+Sorter.unity
+├── Main Camera
+├── Directional Light
+├── SorterArea
+│   ├── SorterAgent (SorterAgent.cs)
+│   │   ├ ├── Agent 컴포넌트
+│   │   ├ ├── Behavior Parameters
+│   │   ├ ├── Decision Requester
+│   │   ├ ├── BufferSensorComponent (가변 관찰)
+│   │   └ └── Rigidbody + Collider
+│   └── NumberTiles (20개 타일)
+│       ├── Tile1 (NumberValue=1, NumberTile.cs)
+│       ├── Tile2 (NumberValue=2, NumberTile.cs)
+│       └── ...
+│           └── Tile20 (NumberValue=20, NumberTile.cs)
+├── Academy (자동 생성)
+└── EventSystem
+```
+
+### (2) `Scripts/SorterAgent.cs` — 메인 에이전트
+
+**BufferSensorComponent**를 사용한 가변 개수 관찰이 가장 큰 특징입니다.
+
+```csharp
+public class SorterAgent : Agent
+{
+    public int DefaultMaxNumTiles;
+    BufferSensorComponent m_BufferSensor;  // 가변 길이 관찰
+    public List<NumberTile> NumberTilesList;      // 20개 타일 전체
+    private List<NumberTile> CurrentlyVisibleTilesList;  // 이번 에피소드의 타일
+}
+```
+
+| 항목 | 설명 |
+|------|------|
+| 고정 관찰 | 4차원 (에이전트 X/Z 위치, 전방 X/Z 방향) |
+| 가변 관찰 | 타일당 23차원 × N개 (BufferSensor) |
+| 액션 | 3차원 이산 (전진/후진, 좌/우, 좌회전/우회전) |
+| 보상 | 올바른 순서 +1, 잘못된 순서 -1+종료, 스텝 패널티 |
+
+**타일별 관찰 (23차원) 상세**:
+```
+[0..19]: 숫자 값 원-핫 (1~20)
+[20]:    타일 X 위치 (에이전트 기준)
+[21]:    타일 Z 위치 (에이전트 기준)
+[22]:    방문 여부 (0 or 1)
+```
+
+**핵심 로직** — 순서 검증:
+```csharp
+// 타일에 부딪히면 CurrentlyVisibleTilesList[m_NextExpectedTileIndex]와 비교
+// 일치하면 → +1 보상, 다음 타일로
+// 일치하지 않으면 → -1 보상, 에피소드 종료
+```
+
+**타일 선택**: 20개 중 무작위로 `m_NumberOfTilesToSpawn`개 선택 후 오름차순 정렬
+**타일 배치**: 방사형 (360/20 = 18도 간격), 중복 없는 랜덤 위치
+
+### (3) `Scripts/NumberTile.cs` — 타일 상태 관리
+
+```csharp
+public class NumberTile : MonoBehaviour
+{
+    public int NumberValue;        // 1~20
+    public Material DefaultMaterial;
+    public Material SuccessMaterial;
+    private bool m_Visited;
+
+    public void VisitTile() { ... }   // 성공 시 색상 변경
+    public void ResetTile() { ... }   // 초기화
+}
+```
+
+### (4) `TFModels/Sorter.onnx` — 사전 학습 ONNX
+
+| 항목 | 설명 |
+|------|------|
+| 학습기 | PPO |
+| 관찰 | BufferSensor (가변) |
+| 액션 | 3차원 이산 |
+| 타일 개수 | 기본 20개 중 일부 (Curriculum) |
+| 특이사항 | BufferSensorComponent를 사용한 유연한 입력 처리 |
 
 ---
 
