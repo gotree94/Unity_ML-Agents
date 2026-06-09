@@ -94,6 +94,23 @@ mlagents-learn config/ppo/3DBall.yaml --run-id=3DBall_Project
 tensorboard --logdir results --port 6006
 # 브라우저에서 http://localhost:6006 열기
 ```
+**TensorBoard 모니터링 결과 해석**
+
+* Environment 섹션 (3 cards)
+   * Cumulative Reward 그래프에서 보상이 약 0에서 시작해 100에 수렴하는 S자 곡선이 나타납니다. <br>
+     최종값 99.4439(Smoothed 100)는 거의 완벽한 학습을 의미합니다. <br>
+     3DBall 환경에서 에이전트가 플랫폼 위에 공을 완벽히 유지하고 있다는 뜻입니다.
+   * Episode Length 역시 1000 스텝에 수렴(최종 993.6392)하는데, <br>
+     에피소드가 최대 길이까지 끊기지 않고 이어진다 = 공이 끝까지 떨어지지 않음을 의미합니다.
+   * Cumulative Reward Histogram은 학습 초기 넓은 분포에서 후반부 좁은 고점 분포로 수렴하는 분산 감소를 보여줍니다.
+
+**Losses 섹션 (2 cards)**
+
+   * Policy Loss는 0.096~0.098 사이에서 진동합니다. <br>
+     완전히 0에 수렴하지 않는 것은 PPO의 Clipping 메커니즘 때문에 정상입니다.
+   * Value Loss는 초반 1.5 피크에서 0에 가깝게 감소했고, 가끔 스파이크가 있지만 전반적으로 안정화됩니다. <br>
+     Critic이 상태 가치를 점점 정확히 예측하고 있음을 나타냅니다.
+
 
 ### 3.3 학습 중단 후 재개
 
