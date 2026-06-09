@@ -1,5 +1,7 @@
 # Basic 예제 가이드
 
+![](../img/Basic.gif)
+
 ## 1. 개요
 
 Basic은 ML-Agents의 가장 단순한 예제 환경입니다.
