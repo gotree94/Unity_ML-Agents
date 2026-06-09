@@ -1,5 +1,7 @@
 # PushBlock 예제 가이드
 
+![](../img/PushBlock.gif)
+
 ## 1. 개요
 
 PushBlock은 에이전트가 주황색 블록을 밀어서 초록색 목표 지점까지 이동시키는 환경입니다.
