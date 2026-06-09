@@ -15,6 +15,7 @@
 1. [ML-Agents 개요](#1-ml-agents-개요)
 2. [Release 23 주요 변경사항](#2-release-23-주요-변경사항)
 3. [환경 설정 (Environment Setup)](#3-환경-설정-environment-setup)
+   - 3.6 [ML-Agents 예제 환경 참조](#36-ml-agents-예제-환경-참조-examples-reference)
 4. [커리큘럼](#4-커리큘럼)
    - 4.1 [Dodge 프로젝트](#41-dodge-프로젝트)
    - 4.2 [PPO 알고리즘](#42-ppo-알고리즘)
@@ -563,12 +564,14 @@ mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
 INFO:mlagents.trainers:Start training by pressing the Play button in the Unity Editor.
 ```
 
-![](003.png) 
+> **참고:** 아래는 실제 훈련 실행 화면과 전체 로그입니다. Unity 연결 후 약 40초 만에 첫 번째 통계(Step 12000, Mean Reward 1.161)가 출력되며,
+> 약 200초(Step 120000)부터 Mean Reward 100.000에 도달하여 완전히 학습된 모습을 보여줍니다.
+
+![](003.png)
 
 ![](005.png)
 
 ![](004.png)
-
 
 ```
 (base) C:\Users\Administrator\Desktop\ml-agents>cd ml-agents
@@ -595,124 +598,10 @@ INFO:mlagents.trainers:Start training by pressing the Play button in the Unity E
 (mlagents_env) C:\Users\Administrator\Desktop\ml-agents\ml-agents>cd C:\Users\Administrator\Desktop\ml-agents
 
 (mlagents_env) C:\Users\Administrator\Desktop\ml-agents>dir
- C 드라이브의 볼륨에는 이름이 없습니다.
- 볼륨 일련 번호: 6E60-F78F
+...
+```
 
- C:\Users\Administrator\Desktop\ml-agents 디렉터리
-
-2026-06-09  오후 02:11    <DIR>          .
-2026-06-09  오후 02:09    <DIR>          ..
-2026-06-09  오후 02:11             2,054 .editorconfig
-2026-06-09  오후 02:11               140 .gitattributes
-2026-06-09  오후 02:11    <DIR>          .github
-2026-06-09  오후 02:11             1,368 .gitignore
-2026-06-09  오후 02:11                 0 .gitmodules
-2026-06-09  오후 02:11             4,629 .pre-commit-config.yaml
-2026-06-09  오후 02:11               254 .pre-commit-search-and-replace.yaml
-2026-06-09  오후 02:11    <DIR>          .yamato
-2026-06-09  오후 02:11               597 catalog-info.yaml
-2026-06-09  오후 02:11               153 CODEOWNERS
-2026-06-09  오후 02:11             3,265 CODE_OF_CONDUCT.md
-2026-06-09  오후 02:11    <DIR>          colab
-2026-06-09  오후 02:11                21 colab_requirements.txt
-2026-06-09  오후 03:07    <DIR>          com.unity.ml-agents
-2026-06-09  오후 02:11    <DIR>          config
-2026-06-09  오후 02:11             2,955 conftest.py
-2026-06-09  오후 02:11    <DIR>          DevProject
-2026-06-09  오후 02:11             1,299 Dockerfile
-2026-06-09  오후 02:11    <DIR>          docs
-2026-06-09  오후 02:11               585 LICENSE.md
-2026-06-09  오후 02:11    <DIR>          localized_docs
-2026-06-09  오후 02:11               550 markdown-link-check.fast.json
-2026-06-09  오후 02:11             1,175 markdown-link-check.full.json
-2026-06-09  오후 02:11             2,476 mkdocs.yml
-2026-06-09  오후 02:17    <DIR>          ml-agents
-2026-06-09  오후 02:17    <DIR>          ml-agents-envs
-2026-06-09  오후 02:11    <DIR>          ml-agents-plugin-examples
-2026-06-09  오후 02:11    <DIR>          ml-agents-trainer-plugin
-2026-06-09  오후 02:11    <DIR>          PerformanceProject
-2026-06-09  오후 02:48    <DIR>          Project
-2026-06-09  오후 02:11    <DIR>          protobuf-definitions
-2026-06-09  오후 02:11                94 pytest.ini
-2026-06-09  오후 02:11            10,019 Readme.md
-2026-06-09  오후 02:11             1,052 setup.cfg
-2026-06-09  오후 02:11               377 SURVEY.md
-2026-06-09  오후 02:11               182 test_constraints_version.txt
-2026-06-09  오후 02:11               131 test_requirements.txt
-2026-06-09  오후 02:11             7,929 Third Party Notices.md
-2026-06-09  오후 02:11    <DIR>          unity-volume
-2026-06-09  오후 02:11    <DIR>          utils
-              23개 파일              41,305 바이트
-              19개 디렉터리  1,970,603,925,504 바이트 남음
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents>cd config
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config>cd ppo
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>dur
-'dur'은(는) 내부 또는 외부 명령, 실행할 수 있는 프로그램, 또는
-배치 파일이 아닙니다.
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>dir
- C 드라이브의 볼륨에는 이름이 없습니다.
- 볼륨 일련 번호: 6E60-F78F
-
- C:\Users\Administrator\Desktop\ml-agents\config\ppo 디렉터리
-
-2026-06-09  오후 02:11    <DIR>          .
-2026-06-09  오후 02:11    <DIR>          ..
-2026-06-09  오후 02:11               564 3DBall.yaml
-2026-06-09  오후 02:11               569 3DBallHard.yaml
-2026-06-09  오후 02:11               798 3DBall_randomize.yaml
-2026-06-09  오후 02:11               556 Basic.yaml
-2026-06-09  오후 02:11               570 Crawler.yaml
-2026-06-09  오후 02:11               577 FoodCollector.yaml
-2026-06-09  오후 02:11               562 GridWorld.yaml
-2026-06-09  오후 02:11               635 Hallway.yaml
-2026-06-09  오후 02:11             1,171 Match3.yaml
-2026-06-09  오후 02:11               566 PushBlock.yaml
-2026-06-09  오후 02:11               717 Pyramids.yaml
-2026-06-09  오후 02:11               734 PyramidsRND.yaml
-2026-06-09  오후 02:11             2,734 Sorter_curriculum.yaml
-2026-06-09  오후 02:11               569 Visual3DBall.yaml
-2026-06-09  오후 02:11               580 VisualFoodCollector.yaml
-2026-06-09  오후 02:11               569 Walker.yaml
-2026-06-09  오후 02:11             1,131 WallJump.yaml
-2026-06-09  오후 02:11             3,128 WallJump_curriculum.yaml
-2026-06-09  오후 02:11               566 Worm.yaml
-              19개 파일              17,296 바이트
-               2개 디렉터리  1,970,603,859,968 바이트 남음
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config\ppo>cd ..
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents\config>cd ..
-
-(mlagents_env) C:\Users\Administrator\Desktop\ml-agents>mlagents-learn config/ppo/3DBall.yaml --run-id=test_3dball
-C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  import pkg_resources
-
-            ┐  ╖
-        ╓╖╬│╡  ││╬╖╖
-    ╓╖╬│││││┘  ╬│││││╬╖
- ╖╬│││││╬╜        ╙╬│││││╖╖                               ╗╗╗
- ╬╬╬╬╖││╦╖        ╖╬││╗╣╣╣╬      ╟╣╣╬    ╟╣╣╣             ╜╜╜  ╟╣╣
- ╬╬╬╬╬╬╬╬╖│╬╖╖╓╬╪│╓╣╣╣╣╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╒╣╣╖╗╣╣╣╗   ╣╣╣ ╣╣╣╣╣╣ ╟╣╣╖   ╣╣╣
- ╬╬╬╬┐  ╙╬╬╬╬│╓╣╣╣╝╜  ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╣╙ ╙╣╣╣  ╣╣╣ ╙╟╣╣╜╙  ╫╣╣  ╟╣╣
- ╬╬╬╬┐     ╙╬╬╣╣      ╫╣╣╣╬      ╟╣╣╬    ╟╣╣╣ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣     ╣╣╣┌╣╣╜
- ╬╬╬╜       ╬╬╣╣      ╙╝╣╣╬      ╙╣╣╣╗╖╓╗╣╣╣╜ ╟╣╣╬   ╣╣╣  ╣╣╣  ╟╣╣╦╓    ╣╣╣╣╣
- ╙   ╓╦╖    ╬╬╣╣   ╓╗╗╖            ╙╝╣╣╣╣╝╜   ╘╝╝╜   ╝╝╝  ╝╝╝   ╙╣╣╣    ╟╣╣╣
-   ╩╬╬╬╬╬╬╦╦╬╬╣╣╗╣╣╣╣╣╣╣╝                                             ╫╣╣╣╣
-      ╙╬╬╬╬╬╬╬╣╣╣╣╣╣╝╜
-          ╙╬╬╬╣╣╣╜
-             ╙
-
- Version information:
-  ml-agents: 1.2.0.dev0,
-  ml-agents-envs: 1.2.0.dev0,
-  Communicator API: 1.5.0,
-  PyTorch: 2.1.1+cu118
-C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py:4: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
-  import pkg_resources
+```text
 [INFO] Listening on port 5004. Start training by pressing the Play button in the Unity Editor.
 [INFO] Connected to Unity environment with package version 4.0.0 and communication version 1.5.0
 [INFO] Connected new brain: 3DBall?team=0
@@ -726,40 +615,19 @@ C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py
           epsilon:      0.2
           lambd:        0.99
           num_epoch:    3
-          shared_critic:        False
           learning_rate_schedule:       linear
-          beta_schedule:        linear
-          epsilon_schedule:     linear
-        checkpoint_interval:    500000
         network_settings:
           normalize:    True
           hidden_units: 128
           num_layers:   2
           vis_encode_type:      simple
-          memory:       None
-          goal_conditioning_type:       hyper
-          deterministic:        False
         reward_signals:
           extrinsic:
             gamma:      0.99
             strength:   1.0
-            network_settings:
-              normalize:        False
-              hidden_units:     128
-              num_layers:       2
-              vis_encode_type:  simple
-              memory:   None
-              goal_conditioning_type:   hyper
-              deterministic:    False
-        init_path:      None
-        keep_checkpoints:       5
-        even_checkpoints:       False
         max_steps:      500000
         time_horizon:   1000
         summary_freq:   12000
-        threaded:       False
-        self_play:      None
-        behavioral_cloning:     None
 [INFO] 3DBall. Step: 12000. Time Elapsed: 41.989 s. Mean Reward: 1.161. Std of Reward: 0.659. Training.
 [INFO] 3DBall. Step: 24000. Time Elapsed: 68.721 s. Mean Reward: 1.361. Std of Reward: 0.748. Training.
 [INFO] 3DBall. Step: 36000. Time Elapsed: 92.955 s. Mean Reward: 1.957. Std of Reward: 1.293. Training.
@@ -806,6 +674,9 @@ C:\Users\Administrator\Desktop\ml-agents\ml-agents\mlagents\torch_utils\torch.py
 [INFO] Copied results\test_3dball\3DBall\3DBall-500267.onnx to results\test_3dball\3DBall.onnx.
 ```
 
+> **분석:** Step 12000부터 보상이 1.161에서 시작하여 꾸준히 증가, Step 120000(약 4분)부터 Mean Reward 100.000에 도달했습니다.
+> 이후 간헐적으로 90~99 구간이 나타나지만 대부분 100.000을 유지하며, 최종 500267步에서 `.onnx` 모델이 `results/test_3dball/3DBall.onnx`로 저장되었습니다.
+> 총 소요 시간: 약 15분 47초 (947초).
 
 **실제 저장소의 `config/ppo/3DBall.yaml` 내용 (PPO):**
 
@@ -900,6 +771,883 @@ ml-agents/results/test_3dball/        ← run-id 이름의 폴더
 | **`conda env create` 느림** | `mamba` 설치 후 `mamba env create -f environment_mlagents.yml` (5배 빠름) |
 | **PyTorch CUDA 미인식** | `conda install cudatoolkit=11.8 -c nvidia` 명시적 설치. `nvidia-smi`로 드라이버 확인 |
 | **`pip install mlagents` 오류** | Python 3.10.12 확인, `protobuf==3.20.3` 고정, `pip install --no-cache-dir` 시도 |
+
+---
+
+## 3.6 ML-Agents 예제 환경 참조 (Examples Reference)
+
+ML-Agents는 17개의 예제 환경을 제공합니다. 각 예제는 특정 ML-Agents 기능(시각적 관측, 메모리, 커리큘럼 학습, 멀티 에이전트, 모방 학습 등)을 시연합니다.
+예제는 `Project/Assets/ML-Agents/Examples/` 폴더에 있으며, 해당 설정 파일은 `config/` 폴더에 알고리즘별로 구성되어 있습니다.
+
+> **중요:** 모든 예제는 3DBall과 동일한 방식으로 훈련합니다. 아래 명령어 템플릿을 참고하세요.
+>
+> ```bash
+> cd C:\Users\Administrator\Desktop\ml-agents
+> conda activate mlagents_env
+> mlagents-learn config/ppo/<예제명>.yaml --run-id=<run-id>
+> ```
+>
+> 훈련 전 Unity Editor에서 씬을 열고 Behavior Type을 **Default**로 설정한 후 Play를 누르지 않은 상태로 대기해야 합니다.
+
+---
+
+### 3.6.1 Basic (입문용)
+
+- **Scene:** `Assets/ML-Agents/Examples/Basic/Scenes/Basic.unity`
+- **목적:** ML-Agents의 가장 단순한 예제. 에이전트가 1차원 선 위에서 좌/우로 이동하며 가장 높은 보상을 받는 상태를 찾는 문제입니다.
+- **개념 학습:** Discrete Action, Vector Observation의 가장 기본적인 사용법
+- **관측:** 1개의 float 변수 (현재 상태)
+- **액션:** 1개 Discrete Branch (3개 액션: 왼쪽 이동 / 정지 / 오른쪽 이동)
+- **보상:** 최적 상태 도달 +1.0, 차선 상태 +0.1, 매 스텝 -0.01
+- **에이전트:** 1개
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 0.93
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/Basic.yaml
+behaviors:
+  Basic:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 32
+      buffer_size: 256
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 20
+      num_layers: 1
+    reward_signals:
+      extrinsic:
+        gamma: 0.9
+        strength: 1.0
+    max_steps: 500000
+    time_horizon: 3
+    summary_freq: 2000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Basic.yaml --run-id=basic_test`
+
+---
+
+### 3.6.2 3DBall (공 균형 맞추기)
+
+**이미 3.4절에서 상세히 다루었습니다.**
+- **세부 변형:** `3DBallHard` (볼 위치만 관측), `Visual3DBall` (카메라 화면으로만 관측)
+- **환경 무작위화:** `3DBall_randomize.yaml` (ball mass/scale 무작위화로 강건한 정책 학습)
+- **Config:** `config/sac/3DBall.yaml` 로 SAC 알고리즘으로도 훈련 가능
+
+---
+
+### 3.6.3 GridWorld (격자 세계)
+
+- **Scene:** `Assets/ML-Agents/Examples/GridWorld/Scenes/GridWorld.unity`
+- **목적:** 에이전트가 격자 위에서 올바른 목표(초록색 +)로 이동하고 장애물(빨간색 X)을 피하는 문제입니다.
+- **개념 학습:** Visual Observation (탑뷰 카메라), Action Masking (유효하지 않은 이동 차단), Goal Signal
+- **관측:** 탑뷰 카메라 화면 (Visual Observation) + Goal Signal (one-hot vector of target color)
+- **액션:** 1개 Discrete Branch (5개 액션: 상/하/좌/우/정지)
+- **보상:** 올바른 목표 도착 +1.0, 잘못된 목표 도착 -1.0, 매 스텝 -0.01
+- **에이전트:** 9개 (동일 Behavior Parameters)
+- **액션 마스킹:** 기본 활성화됨 (격자 밖으로 이동하는 액션 자동 차단)
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 0.8
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/GridWorld.yaml
+behaviors:
+  GridWorld:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 32
+      buffer_size: 256
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+      learning_rate_schedule: linear
+    network_settings:
+      normalize: false
+      hidden_units: 128
+      num_layers: 1
+    reward_signals:
+      extrinsic:
+        gamma: 0.9
+        strength: 1.0
+    max_steps: 500000
+    time_horizon: 5
+    summary_freq: 20000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/GridWorld.yaml --run-id=gridworld_test`
+
+---
+
+### 3.6.4 PushBlock (블록 밀기)
+
+- **Scene:** `Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlock.unity`
+- **목적:** 에이전트가 블록을 밀어 목표 지점으로 이동시키는 문제입니다.
+- **개념 학습:** Ray Perception Sensor 3D, Object 타입 구분 (벽/골/블록)
+- **관측:** 14개 Ray-cast 각각이 3가지 물체 타입(벽, 골, 블록) 감지 → 70차원 Vector Observation
+- **액션:** 1개 Discrete Branch (7개 액션: 회전 2방향 + 이동 4방향 + 정지)
+- **보상:** 블록이 골에 닿으면 +1.0, 매 스텝 -0.0025
+- **에이전트:** 1개
+- **Float Properties:** block_scale, dynamic_friction, static_friction, block_drag
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 4.5
+- **변형:** `PushBlockWithInput` (커스텀 입력 처리 PushBlock), `PushBlockCollab` (POCA 협력)
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/PushBlock.yaml
+behaviors:
+  PushBlock:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 256
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 2000000
+    time_horizon: 64
+    summary_freq: 60000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/PushBlock.yaml --run-id=pushblock_test`
+
+---
+
+### 3.6.5 WallJump (벽 넘기)
+
+- **Scene:** `Assets/ML-Agents/Examples/WallJump/Scenes/WallJump.unity`
+- **목적:** 에이전트가 블록을 이용해 다양한 높이의 벽을 넘어 목표에 도달하는 문제입니다.
+- **개념 학습:** Curriculum Learning, Multiple Model Switching (벽 높이에 따라 다른 Policy 사용)
+- **관측:** 14개 Ray-cast (4가지 물체 타입) → 74차원 (전역 위치 + 접지 여부 포함)
+- **액션:** 4개 Discrete Branch (전진/후진, 회전, 좌우 이동, 점프)
+- **보상:** 골 도달 +1.0, 추락 -1.0, 매 스텝 -0.0005
+- **Behavior Names:** `SmallWallJump` (작은 벽), `BigWallJump` (큰 벽 - 블록 필요)
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 0.8 (Big & Small Wall)
+
+**Config:** 2개의 Behavior(`BigWallJump`, `SmallWallJump`)가 각각 설정됨. max_steps 20M/5M.
+
+<details>
+<summary><b>Curriculum Learning 상세 (WallJump_curriculum.yaml)</b></summary>
+
+```yaml
+# config/ppo/WallJump_curriculum.yaml
+# big_wall_height: Lesson0 (0~4) → Lesson1 (4~7) → Lesson2 (6~8) → Lesson3 (8 고정)
+# small_wall_height: Lesson0 (1.5) → Lesson1 (2.0) → Lesson2 (2.5) → Lesson3 (4.0)
+```
+- `big_wall_height`가 4단계에 걸쳐 점진적으로 증가
+- 각 Lesson의 `threshold` 달성 시 자동으로 다음 단계로 진행
+</details>
+
+**훈련 (기본):** `mlagents-learn config/ppo/WallJump.yaml --run-id=walljump_test`
+**훈련 (커리큘럼):** `mlagents-learn config/ppo/WallJump_curriculum.yaml --run-id=walljump_curriculum`
+
+---
+
+### 3.6.6 Hallway (복도 기억)
+
+- **Scene:** `Assets/ML-Agents/Examples/Hallway/Scenes/Hallway.unity`
+- **목적:** 에이전트가 방 안의 색상 정보(파란색/빨간색 큐브)를 기억했다가 복도 끝에서 올바른 골로 이동하는 문제입니다.
+- **개념 학습:** **Recurrent Neural Network (메모리)** - `memory` 네트워크 설정 필요
+- **관측:** 30차원 Ray-cast (물체, 골, 벽 탐지)
+- **액션:** 1개 Discrete Branch (4개 액션: 회전 + 전진/후진)
+- **보상:** 올바른 골 +1.0, 잘못된 골 -0.1, 존재 패널티 -0.0003
+- **에이전트:** 1개
+- **핵심 설정:** `network_settings.memory.sequence_length: 64`, `memory_size: 128`
+- **알고리즘:** PPO 또는 SAC (+ Curiosity 신호로 학습 가속 가능)
+- **Benchmark Mean Reward:** 0.7
+
+<details>
+<summary><b>Config 상세 (PPO + Memory)</b></summary>
+
+```yaml
+# config/ppo/Hallway.yaml
+behaviors:
+  Hallway:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 1024
+      learning_rate: 0.0003
+      beta: 0.03
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 128
+      num_layers: 2
+      memory:                          # ← 메모리(RNN) 활성화
+        sequence_length: 64
+        memory_size: 128
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 10000000
+    time_horizon: 64
+    summary_freq: 10000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Hallway.yaml --run-id=hallway_test`
+**Imitation 학습:** `mlagents-learn config/imitation/Hallway.yaml --run-id=hallway_imitation`
+
+---
+
+### 3.6.7 Pyramids (피라미드)
+
+- **Scene:** `Assets/ML-Agents/Examples/Pyramids/Scenes/Pyramids.unity`
+- **목적:** 에이전트가 버튼을 눌러 피라미드를 생성한 후, 피라미드를 넘어뜨리고 꼭대기의 황금 벽돌에 도달하는 문제입니다.
+- **개념 학습:** **희소 보상(Sparse Reward) 문제** - Curiosity 또는 RND 보조 신호로 해결
+- **관측:** 148차원 Ray-cast (스위치, 벽돌, 황금벽돌, 벽) + 스위치 상태
+- **액션:** 1개 Discrete Branch (4개 액션: 회전 + 전진/후진)
+- **보상:** 황금 벽돌 도달 +2.0 (스텝당 -0.001)
+- **에이전트:** 1개
+- **알고리즘:** PPO 또는 SAC (+ Curiosity 또는 RND)
+- **Benchmark Mean Reward:** 1.75
+
+**Config 종류:**
+- `config/ppo/Pyramids.yaml` - PPO + Curiosity (강도 0.02)
+- `config/ppo/PyramidsRND.yaml` - PPO + **RND** (Random Network Distillation, 강도 0.01)
+- `config/sac/Pyramids.yaml` - SAC
+
+<details>
+<summary><b>Config 상세 (PPO + Curiosity)</b></summary>
+
+```yaml
+# config/ppo/Pyramids.yaml
+behaviors:
+  Pyramids:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 128
+      buffer_size: 2048
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 512
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+      curiosity:                     # ← Curiosity 보조 보상
+        gamma: 0.99
+        strength: 0.02
+        network_settings:
+          hidden_units: 256
+        learning_rate: 0.0003
+    max_steps: 10000000
+    time_horizon: 128
+    summary_freq: 30000
+```
+</details>
+
+**훈련 (Curiosity):** `mlagents-learn config/ppo/Pyramids.yaml --run-id=pyramids_test`
+**훈련 (RND):** `mlagents-learn config/ppo/PyramidsRND.yaml --run-id=pyramids_rnd`
+
+---
+
+### 3.6.8 Crawler (4족 보행)
+
+- **Scene:** `Assets/ML-Agents/Examples/Crawler/Scenes/Crawler.unity`
+- **목적:** 4개의 팔과 4개의 아래팔을 가진 생명체가 목표 방향으로 이동하는 문제입니다.
+- **개념 학습:** **Continuous Action**, **기하 평균 보상 (Geometric Reward)**, **JointDriveController**
+- **관측:** 172차원 (각 관절의 위치/회전/속도/각속도 + 몸체 가속도/각가속도)
+- **액션:** 20개 Continuous Action (각 관절의 목표 회전각)
+- **보상:** 기하 평균(곱) - 몸체 속도 정합성 × 머리 방향 정합성 (모두 0~1 정규화)
+- **에이전트:** 10개 (동일 Behavior Parameters)
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 3000
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/Crawler.yaml
+behaviors:
+  Crawler:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 2048
+      buffer_size: 20480
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      normalize: true
+      hidden_units: 512
+      num_layers: 3
+    reward_signals:
+      extrinsic:
+        gamma: 0.995
+        strength: 1.0
+    max_steps: 10000000
+    time_horizon: 1000
+    summary_freq: 30000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Crawler.yaml --run-id=crawler_test`
+
+---
+
+### 3.6.9 Walker (이족 보행)
+
+- **Scene:** `Assets/ML-Agents/Examples/Walker/Scenes/Walker.unity`
+- **목적:** 26 자유도를 가진 인간형 로봇이 목표 방향으로 넘어지지 않고 이동하는 문제입니다.
+- **개념 학습:** **고차원 Continuous Control**, 인간형 물리 시뮬레이션
+- **관측:** 243차원 (각 관절의 위치/회전/속도/각속도 + 목표 방향)
+- **액션:** 39개 Continuous Action (각 관절의 목표 회전각 + 강도)
+- **보상:** 기하 평균 - 몸체 속도 정합성 × 머리 방향 정합성
+- **에이전트:** 10개 (동일 Behavior Parameters)
+- **Float Properties:** gravity, hip_mass, chest_mass, spine_mass
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 2500
+- **참고:** Crawler보다 훨씬 많은 학습 시간 필요 (max_steps: 30M)
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/Walker.yaml
+behaviors:
+  Walker:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 2048
+      buffer_size: 20480
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      normalize: true
+      hidden_units: 256
+      num_layers: 3
+    reward_signals:
+      extrinsic:
+        gamma: 0.995
+        strength: 1.0
+    max_steps: 30000000
+    time_horizon: 1000
+    summary_freq: 30000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Walker.yaml --run-id=walker_test`
+
+---
+
+### 3.6.10 Worm (뱀형 보행)
+
+- **Scene:** `Assets/ML-Agents/Examples/Worm/Scenes/Worm.unity`
+- **목적:** 머리와 3개 몸통 마디로 구성된 뱀형 생명체가 목표 방향으로 이동하는 문제입니다.
+- **개념 학습:** Crawler/Walker와 유사한 Continuous Control (더 적은 자유도)
+- **관측:** 64차원 (각 마디의 위치/회전/속도/각속도 + 가속도/각가속도)
+- **액션:** 9개 Continuous Action
+- **보상:** 기하 평균 - 몸체 속도 정합성 × 몸체 방향 정합성
+- **에이전트:** 10개 (동일 Behavior Parameters)
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 800
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/Worm.yaml
+behaviors:
+  Worm:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 2024
+      buffer_size: 20240
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      normalize: true
+      hidden_units: 512
+      num_layers: 3
+    reward_signals:
+      extrinsic:
+        gamma: 0.995
+        strength: 1.0
+    max_steps: 7000000
+    time_horizon: 1000
+    summary_freq: 30000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Worm.yaml --run-id=worm_test`
+
+---
+
+### 3.6.11 FoodCollector (음식 수집)
+
+- **Scene:** `Assets/ML-Agents/Examples/FoodCollector/Scenes/FoodCollector.unity`
+- **목적:** 여러 에이전트가 경쟁하며 초록색 음식(보상)은 모으고 빨간색 음식(패널티)은 피하는 문제입니다.
+- **개념 학습:** **Multi-Agent (경쟁)**, Grid Perception Sensor, Hybrid Action (Continuous + Discrete)
+- **관측:** 53차원 (속도 2 + 상태 2 + Grid Perception 40×40×6 categories)
+- **액션:** 3개 Continuous (전진/좌우/회전) + 1개 Discrete (레이저 발사/정지)
+- **보상:** 초록색 +1.0, 빨간색 -1.0
+- **에이전트:** 5개 (동일 Behavior Parameters)
+- **변형:** `VisualFoodCollector` (1인칭 카메라 + Frozen Flag Vector Observation)
+- **알고리즘:** PPO 또는 SAC
+- **Benchmark Mean Reward:** 10
+
+<details>
+<summary><b>Config 상세 (PPO)</b></summary>
+
+```yaml
+# config/ppo/FoodCollector.yaml
+behaviors:
+  GridFoodCollector:
+    trainer_type: ppo
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 256
+      num_layers: 1
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 2000000
+    time_horizon: 64
+    summary_freq: 10000
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/FoodCollector.yaml --run-id=foodcollector_test`
+
+---
+
+### 3.6.12 Soccer (2vs2 축구)
+
+- **Scene:** `Assets/ML-Agents/Examples/Soccer/Scenes/SoccerTwos.unity`
+- **목적:** 4개 에이전트가 2대2 팀을 이루어 축구 경기를 하는 문제입니다.
+- **개념 학습:** **Multi-Agent 경쟁 (POCA + Self-Play)**, TeamId 기반 팀 구분
+- **관측:** 336차원 (전방 11개 + 후방 3개 Ray-cast × 6가지 물체 타입, 3스택)
+- **액션:** 3개 Discrete Branch (전후/좌우 이동 + 회전)
+- **보상 (팀 기준):** 골 넣으면 + (1 - 누적 시간 패널티), 실점하면 -1
+- **에이전트:** 4개 (2개 Multi-Agent Group, 팀당 2명)
+- **포지션:** Striker / Goalie / Generic
+- **알고리즘:** **MA-POCA (+ Self-Play)**
+- **Self-Play 설정:** elo 레이팅 기반, 팀 변경 200K 스텝 간격
+
+<details>
+<summary><b>Config 상세 (POCA + Self-Play)</b></summary>
+
+```yaml
+# config/poca/SoccerTwos.yaml
+behaviors:
+  SoccerTwos:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 2048
+      buffer_size: 20480
+      learning_rate: 0.0003
+      beta: 0.005
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 512
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 50000000
+    time_horizon: 1000
+    summary_freq: 10000
+    self_play:
+      save_steps: 50000
+      team_change: 200000
+      swap_steps: 2000
+      window: 10
+      play_against_latest_model_ratio: 0.5
+      initial_elo: 1200.0
+```
+</details>
+
+**훈련:** `mlagents-learn config/poca/SoccerTwos.yaml --run-id=soccer_test`
+
+---
+
+### 3.6.13 StrikersVsGoalie (2vs1 축구)
+
+- **Scene:** `Assets/ML-Agents/Examples/Soccer/Scenes/StrikersVsGoalie.unity`
+- **목적:** 2명의 공격수와 1명의 골키퍼가 비대칭적인 경기를 펼치는 문제입니다.
+- **개념 학습:** **비대칭 Multi-Agent (POCA + Self-Play)**, Behavior별 다른 Observation
+- **Behavior:** `Striker` (2명) vs `Goalie` (1명)
+- **Striker 관측:** 294차원 (전방 11개 + 후방 3개 Ray-cast × 5가지 타입)
+- **Goalie 관측:** 738차원 (360도 41개 Ray-cast × 4가지 타입, 3스택)
+- **액션:** 3개 Discrete Branch (Striker/Goalie 동일 구조)
+- **보상:** Striker +1.0 (골), -0.001 (존재 패널티) / Goalie -1.0 (실점), +0.001 (존재 보너스)
+- **알고리즘:** **MA-POCA (+ Self-Play)**
+
+<details>
+<summary><b>Config 상세 (POCA + Self-Play)</b></summary>
+
+```yaml
+# config/poca/StrikersVsGoalie.yaml
+behaviors:
+  Goalie:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 2048
+      buffer_size: 20480
+      learning_rate: 0.0003
+    network_settings:
+      hidden_units: 512
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 30000000
+    time_horizon: 1000
+    summary_freq: 10000
+    self_play:
+      save_steps: 50000
+      team_change: 200000
+      swap_steps: 1000
+      window: 10
+      play_against_latest_model_ratio: 0.5
+      initial_elo: 1200.0
+  Striker:
+    trainer_type: poca
+    # ... (하이퍼파라미터 유사)
+    self_play:
+      swap_steps: 4000  # ← Goalie와 다름
+```
+</details>
+
+**훈련:** `mlagents-learn config/poca/StrikersVsGoalie.yaml --run-id=strikers_test`
+
+---
+
+### 3.6.14 Cooperative PushBlock (협력 블록 밀기)
+
+- **Scene:** `Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlockCollab.unity`
+- **목적:** 3명의 에이전트가 협력하여 다양한 크기의 블록을 목표로 밀어넣는 문제입니다.
+- **개념 학습:** **Multi-Agent 협력 (MA-POCA)**, Variable-sized blocks
+- **관측:** Grid Sensor (블록 크기별 구분 태그, 골, 벽, 다른 에이전트)
+- **액션:** 1개 Discrete Branch (7개 액션) - PushBlock과 동일
+- **보상:** 그룹 보상 - 작은 블록 +1 (1명 필요), 중간 +2 (2명 협력), 큰 +3 (3명 협력)
+- **에이전트:** 3개 (1개 Multi-Agent Group)
+- **알고리즘:** **MA-POCA** (필수)
+
+<details>
+<summary><b>Config 상세 (POCA)</b></summary>
+
+```yaml
+# config/poca/PushBlockCollab.yaml
+behaviors:
+  PushBlockCollab:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 256
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 15000000
+    time_horizon: 64
+    summary_freq: 60000
+```
+</details>
+
+**훈련:** `mlagents-learn config/poca/PushBlockCollab.yaml --run-id=pushblock_collab`
+
+---
+
+### 3.6.15 DungeonEscape (던전 탈출)
+
+- **Scene:** `Assets/ML-Agents/Examples/DungeonEscape/Scenes/DungeonEscape.unity`
+- **목적:** 3명의 에이전트가 던전에 갇혀 드래곤을 희생시켜 얻은 열쇠로 문을 열고 탈출하는 협력 문제입니다.
+- **개념 학습:** **Multi-Agent 협력 + 희생 (MA-POCA)**, 복잡한 순차적 협동
+- **게임 진행:** 
+  1. 한 에이전트가 드래곤을 찾아 처치 (희생)
+  2. 드래곤이 열쇠 드롭
+  3. 다른 에이전트가 열쇠를 획득
+  4. 문을 열고 탈출
+- **관측:** Ray Perception Sensor (벽, 에이전트, 문, 열쇠, 드래곤, 포탈) + 열쇠 소유 여부 Vector
+- **액션:** 1개 Discrete Branch (7개 액션)
+- **보상:** 탈출 성공 시 그룹 보상 +1.0
+- **에이전트:** 3명 + Dragon 1마리 (미리 정해진 패턴으로 이동)
+- **알고리즘:** **MA-POCA** (필수)
+- **Benchmark Mean Reward:** 1.0 (그룹 보상)
+- **참고:** 이 환경은 4.7절에서 상세히 다룹니다.
+
+<details>
+<summary><b>Config 상세 (POCA)</b></summary>
+
+```yaml
+# config/poca/DungeonEscape.yaml
+behaviors:
+  DungeonEscape:
+    trainer_type: poca
+    hyperparameters:
+      batch_size: 1024
+      buffer_size: 10240
+      learning_rate: 0.0003
+      beta: 0.01
+      epsilon: 0.2
+      lambd: 0.95
+      num_epoch: 3
+    network_settings:
+      hidden_units: 256
+      num_layers: 2
+    reward_signals:
+      extrinsic:
+        gamma: 0.99
+        strength: 1.0
+    max_steps: 20000000
+    time_horizon: 64
+    summary_freq: 60000
+```
+</details>
+
+**훈련:** `mlagents-learn config/poca/DungeonEscape.yaml --run-id=dungeon_test`
+
+---
+
+### 3.6.16 Match3 (퍼즐 게임)
+
+- **Scene:** `Assets/ML-Agents/Examples/Match3/Scenes/Match3.unity`
+- **목적:** 3매치 퍼즐 게임에서 최대 점수를 얻는 문제입니다.
+- **개념 학습:** **Match3 전용 Sensor/Actuator**, `vis_encode_type: match3`
+- **관측:** Match3 전용 센서 (보드 상태) 또는 Visual Observation
+- **액션:** Match3 전용 Actuator (스왑 가능한 쌍 선택)
+- **보상:** 일반 블록 제거 0.01, 특수 블록 2~3배
+- **에이전트:** 여러 개 (독립적)
+- **Config 특이점:** `default_settings`로 기본값 설정 후 `Match3SimpleHeuristic`, `Match3SmartHeuristic` 서브 Behavior
+- **알고리즘:** PPO (`learning_rate_schedule: constant`)
+- **Benchmark Mean Reward:** 39.5 (Visual) / 38.5 (Vector) / 34.2 (Random) / 37.0 (Greedy)
+
+<details>
+<summary><b>Config 상세 (PPO + Match3 인코더)</b></summary>
+
+```yaml
+# config/ppo/Match3.yaml
+default_settings:
+  trainer_type: ppo
+  hyperparameters:
+    batch_size: 16
+    buffer_size: 120
+    learning_rate: 0.0003
+    beta: 0.005
+    epsilon: 0.2
+    lambd: 0.99
+    num_epoch: 3
+    learning_rate_schedule: constant
+  network_settings:
+    normalize: true
+    hidden_units: 256
+    num_layers: 4
+    vis_encode_type: match3          # ← Match3 전용 인코더
+  max_steps: 5000000
+  time_horizon: 128
+  summary_freq: 10000
+behaviors:
+  Match3SimpleHeuristic:  ...  # 단순 휴리스틱 (hidden_units: 4)
+  Match3SmartHeuristic:   ...  # 고급 휴리스틱 (hidden_units: 4)
+```
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Match3.yaml --run-id=match3_test`
+
+---
+
+### 3.6.17 Sorter (정렬 게임)
+
+- **Scene:** `Assets/ML-Agents/Examples/Sorter/Scenes/Sorter.unity`
+- **목적:** 에이전트가 원형 방 안에 있는 번호 타일들을 오름차순으로 방문하는 문제입니다.
+- **개념 학습:** **Buffer Sensor (가변 길이 관측)**, **Curriculum Learning**
+- **관측:** 4차원 Vector (위치 2 + 방향 2) + Buffer Sensor (타일당 23차원, 1~20개 가변)
+- **액션:** 3개 Discrete Branch (전진/후진, 좌우 이동, 회전)
+- **보상:** 올바른 타일 방문 +1.0, 잘못된 타일 -1.0, 존재 패널티 -0.0002
+- **에이전트:** 1개
+- **Curriculum:** `num_tiles`가 2개(Lesson0)에서 20개(Lesson9)까지 점진적 증가
+- **알고리즘:** PPO (`learning_rate_schedule: constant`)
+
+<details>
+<summary><b>Curriculum 상세 (Sorter_curriculum.yaml)</b></summary>
+
+```yaml
+# config/ppo/Sorter_curriculum.yaml
+environment_parameters:
+  num_tiles:
+    curriculum:
+      - name: Lesson0  # 타일 2개 (value: 2.0)
+        completion_criteria:
+          measure: progress
+          behavior: Sorter
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.3
+      - name: Lesson1  # 타일 4개 (value: 4.0)
+        completion_criteria:
+          measure: progress
+          behavior: Sorter
+          signal_smoothing: true
+          min_lesson_length: 100
+          threshold: 0.4
+      # ... Lesson9 (타일 20개)까지 점진적 증가
+```
+- 10단계 커리큘럼: 2 → 4 → 6 → 8 → 10 → 12 → 14 → 16 → 18 → 20개 타일
+- 각 단계는 Reward threshold를 넘으면 자동 전환
+</details>
+
+**훈련:** `mlagents-learn config/ppo/Sorter_curriculum.yaml --run-id=sorter_test`
+
+---
+
+### 3.6.18 PushBlockWithInput (입력 처리 PushBlock)
+
+- **Scene:** `Assets/ML-Agents/Examples/PushBlockWithInput/Scenes/PushBlockWithInput.unity`
+- **목적:** PushBlock과 동일하나, **커스텀 Actuator/Input 처리** 구현을 시연합니다.
+- **개념 학습:** IActuator 인터페이스 구현, Heuristic 입력 처리 (키보드 직접 제어)
+- **차이점:** 기본 PushBlock은 `OnActionReceived()` 사용, 이 예제는 `IActuator`를 통한 대체 입력 경로 구현
+- **훈련 방법:** `config/ppo/PushBlock.yaml` 사용 (PushBlock과 동일한 config)
+
+---
+
+### 3.6.19 Startup / SharedAssets (유틸리티)
+
+**Startup:**
+- `Assets/ML-Agents/Examples/Startup/Startup/Startup.unity`
+- **목적:** Unity Editor 없이 mlagents-learn이 직접 Unity 실행 파일을 구동할 때 사용할 씬을 지정하는 유틸리티
+- **사용법:** `SCENE_NAME` 환경변수 또는 `--mlagents-scene-name` CLI 인자로 씬 이름 전달
+
+**SharedAssets:**
+- 실제 예제가 아니라 모든 예제가 공유하는 **공통 리소스 폴더** (Materials, Meshes, Prefabs, Scripts)
+- 각종 예제용 프리팹과 `AdjustTrainingTimescale.cs` 등 공용 스크립트 포함
+- Time Scale 단축키: 숫자키 `1`~`9` (1배~9배), `0` (2배씩 증가)
+
+---
+
+### 3.6.20 예제 환경 요약표
+
+| # | 예제명 | Scene | 알고리즘 | 액션 타입 | 관측 타입 | 핵심 개념 | 학습 난이도 |
+|---|---|---|---|---|---|---|---|
+| 1 | **Basic** | Basic.unity | PPO/SAC | Discrete 1 | Vector 1 | 가장 단순한 RL | ⭐ |
+| 2 | **3DBall** | 3DBall.unity | PPO/SAC | Continuous 2 | Vector 8 | 균형 제어 | ⭐⭐ |
+| 3 | **GridWorld** | GridWorld.unity | PPO/SAC | Discrete 5 | Visual | Action Masking | ⭐⭐ |
+| 4 | **PushBlock** | PushBlock.unity | PPO/SAC | Discrete 7 | Ray-Cast 70 | 물체 상호작용 | ⭐⭐ |
+| 5 | **WallJump** | WallJump.unity | PPO/SAC | 4×Discrete | Ray-Cast 74 | Curriculum | ⭐⭐⭐ |
+| 6 | **Hallway** | Hallway.unity | PPO/SAC | Discrete 4 | Ray-Cast 30 | **Memory (RNN)** | ⭐⭐⭐ |
+| 7 | **Pyramids** | Pyramids.unity | PPO/SAC | Discrete 4 | Ray-Cast 148 | **Curiosity/RND** | ⭐⭐⭐ |
+| 8 | **Crawler** | Crawler.unity | PPO/SAC | Continuous 20 | Vector 172 | **Continuous Control** | ⭐⭐⭐ |
+| 9 | **Walker** | Walker.unity | PPO/SAC | Continuous 39 | Vector 243 | Humanoid 물리 | ⭐⭐⭐⭐ |
+| 10 | **Worm** | Worm.unity | PPO/SAC | Continuous 9 | Vector 64 | Continuous Control | ⭐⭐⭐ |
+| 11 | **FoodCollector** | FoodCollector.unity | PPO/SAC | **Hybrid** | Grid Perception | 경쟁 Multi-Agent | ⭐⭐⭐ |
+| 12 | **Soccer** | SoccerTwos.unity | **POCA** | 3×Discrete | Ray-Cast 336 | **Self-Play** | ⭐⭐⭐⭐ |
+| 13 | **StrikersVsGoalie** | StrikersVsGoalie.unity | **POCA** | 3×Discrete | Ray-Cast (비대칭) | 비대칭 Self-Play | ⭐⭐⭐⭐ |
+| 14 | **PushBlockCollab** | PushBlockCollab.unity | **POCA** | Discrete 7 | Grid Sensor | 협력 Multi-Agent | ⭐⭐⭐ |
+| 15 | **DungeonEscape** | DungeonEscape.unity | **POCA** | Discrete 7 | Ray Perception | 희생+협력 | ⭐⭐⭐⭐ |
+| 16 | **Match3** | Match3.unity | PPO | Match3 전용 | Match3 Sensor | **게임 인공지능** | ⭐⭐ |
+| 17 | **Sorter** | Sorter.unity | PPO | 3×Discrete | **Buffer Sensor** | 가변 길이 관측 | ⭐⭐⭐ |
+
+> **학습 난이도:** ⭐ (1분) / ⭐⭐ (5~10분) / ⭐⭐⭐ (30분~1시간) / ⭐⭐⭐⭐ (수시간)
+> (GTX 3060 기준, max_steps 도달 시간)
+
+---
+
+### 3.6.21 예제 학습 명령어 모음
+
+```bash
+# === PPO로 학습 가능한 예제 ===
+mlagents-learn config/ppo/Basic.yaml --run-id=basic
+mlagents-learn config/ppo/3DBall.yaml --run-id=3dball
+mlagents-learn config/ppo/GridWorld.yaml --run-id=gridworld
+mlagents-learn config/ppo/PushBlock.yaml --run-id=pushblock
+mlagents-learn config/ppo/WallJump.yaml --run-id=walljump
+mlagents-learn config/ppo/WallJump_curriculum.yaml --run-id=walljump_curriculum
+mlagents-learn config/ppo/Hallway.yaml --run-id=hallway
+mlagents-learn config/ppo/Pyramids.yaml --run-id=pyramids_curiosity
+mlagents-learn config/ppo/PyramidsRND.yaml --run-id=pyramids_rnd
+mlagents-learn config/ppo/Crawler.yaml --run-id=crawler
+mlagents-learn config/ppo/Walker.yaml --run-id=walker
+mlagents-learn config/ppo/Worm.yaml --run-id=worm
+mlagents-learn config/ppo/FoodCollector.yaml --run-id=foodcollector
+mlagents-learn config/ppo/Match3.yaml --run-id=match3
+mlagents-learn config/ppo/Sorter_curriculum.yaml --run-id=sorter
+
+# === SAC로도 학습 가능한 예제 (PPO와 동일한 예제 중 일부) ===
+mlagents-learn config/sac/3DBall.yaml --run-id=3dball_sac
+mlagents-learn config/sac/Basic.yaml --run-id=basic_sac
+mlagents-learn config/sac/Crawler.yaml --run-id=crawler_sac
+mlagents-learn config/sac/Walker.yaml --run-id=walker_sac
+
+# === MA-POCA로 학습하는 멀티 에이전트 예제 ===
+mlagents-learn config/poca/SoccerTwos.yaml --run-id=soccer_twos
+mlagents-learn config/poca/StrikersVsGoalie.yaml --run-id=strikers_vs_goalie
+mlagents-learn config/poca/PushBlockCollab.yaml --run-id=pushblock_collab
+mlagents-learn config/poca/DungeonEscape.yaml --run-id=dungeon_escape
+
+# === Imitation Learning (모방 학습) ===
+# 사전 녹화된 데모(demo) 파일을 사용한 GAIL + Behavioral Cloning
+mlagents-learn config/imitation/Crawler.yaml --run-id=crawler_gail
+mlagents-learn config/imitation/Hallway.yaml --run-id=hallway_gail
+mlagents-learn config/imitation/PushBlock.yaml --run-id=pushblock_gail
+mlagents-learn config/imitation/Pyramids.yaml --run-id=pyramids_gail
+```
 
 ---
 
