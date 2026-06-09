@@ -1343,6 +1343,8 @@ behaviors:
 
 ### 3.6.13 StrikersVsGoalie (2vs1 축구)
 
+![](img/StrikersVsGoalie.gif)
+
 - **Scene:** `Assets/ML-Agents/Examples/Soccer/Scenes/StrikersVsGoalie.unity`
 - **목적:** 2명의 공격수와 1명의 골키퍼가 비대칭적인 경기를 펼치는 문제입니다.
 - **개념 학습:** **비대칭 Multi-Agent (POCA + Self-Play)**, Behavior별 다른 Observation
@@ -1395,6 +1397,8 @@ behaviors:
 ---
 
 ### 3.6.14 Cooperative PushBlock (협력 블록 밀기)
+
+![](img/PushBlockCollab.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/PushBlock/Scenes/PushBlockCollab.unity`
 - **목적:** 3명의 에이전트가 협력하여 다양한 크기의 블록을 목표로 밀어넣는 문제입니다.
@@ -1492,6 +1496,8 @@ behaviors:
 ---
 
 ### 3.6.16 Match3 (퍼즐 게임)
+
+![](img/Match3.gif)
 
 - **Scene:** `Assets/ML-Agents/Examples/Match3/Scenes/Match3.unity`
 - **목적:** 3매치 퍼즐 게임에서 최대 점수를 얻는 문제입니다.
