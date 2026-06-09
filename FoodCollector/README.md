@@ -1,5 +1,7 @@
 # FoodCollector 예제 가이드
 
+![](../img/FoodCollector.gif)
+
 ## 1. 개요
 
 FoodCollector는 여러 에이전트가 경쟁하며 음식을 수집하는 다중 에이전트 환경입니다.
