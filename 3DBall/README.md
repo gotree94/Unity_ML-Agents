@@ -2,6 +2,10 @@
 
 ![](../img/3DBall.gif)
 
+![](../img/Visual3DBall.gif)
+
+![](../img/3DBallHard.gif)
+
 ## 1. 개요
 
 * 3DBall은 ML-Agents의 가장 대표적인 예제 환경입니다.
