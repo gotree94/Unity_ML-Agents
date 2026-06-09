@@ -493,7 +493,7 @@ ml-agents/Project/Assets/ML-Agents/Examples/
 1. 예제 씬 열기
    - **방법 A**를 선택한 경우: 별도로 연 `Project` 폴더의 Unity 프로젝트에서 `Assets/ML-Agents/Examples/3DBall/Scenes/3DBall` 씬 열기
    - **방법 B**를 선택한 경우: 본인의 프로젝트에서 `Assets/ML-Agents/Examples/3DBall/Scenes/3DBall` 씬 열기
-2. 계층 뷰에서 `Ball3DAcademy` → `Agent` 객체 선택
+2. 계층 뷰에서 아무 `3DBall` GameObject를 펼친 후 그 안의 `Agent` 객체 선택
 3. `Behavior Parameters` 컴포넌트의 `Behavior Type`을 `Inference Only`로 설정
 4. **Play** 버튼 클릭
 5. 사전 훈련된 모델로 공 균형 맞추기 동작 확인
