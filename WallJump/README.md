@@ -1,5 +1,7 @@
 # WallJump 예제 가이드
 
+![](../img/WallJump.gif)
+
 ## 1. 개요
 
 WallJump는 에이전트가 벽을 넘어 목표 지점에 도달해야 하는 환경입니다.
