@@ -1,5 +1,7 @@
 # DungeonEscape 예제 가이드
 
+![](../img/DungeonEscape.gif)
+
 ## 1. 개요
 
 DungeonEscape는 여러 에이전트가 협력하여 던전을 탈출하는 협력형 멀티 에이전트 환경입니다.
